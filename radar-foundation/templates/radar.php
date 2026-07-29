@@ -1,6 +1,5 @@
 <?php defined( 'ABSPATH' ) || exit; ?>
-<main class="srf-shell" id="radar">
-	<?php echo SRF_Helpers::navigation(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+<div class="srf-shell" id="radar">
 
 	<header class="srf-hero">
 		<div>
@@ -51,10 +50,8 @@
 		<div class="srf-section-head"><div><span>Educational Review</span><h2 id="remedy-comparison-title">Remedy Comparison</h2></div><p>Compare up to three published remedy entries from the Encyclopedia.</p></div>
 		<?php if ( $remedies ) : ?>
 			<form class="srf-remedy-form" method="get" action="<?php echo esc_url( $radar_url ); ?>#remedy-comparison">
-				<?php for ( $slot = 0; $slot < 3; $slot++ ) : ?>
-					<label>Remedy <?php echo absint( $slot + 1 ); ?><select name="radar_remedy_compare[]"><option value="">Choose a remedy</option><?php foreach ( $remedies as $remedy ) : ?><option value="<?php echo absint( $remedy->ID ); ?>" <?php selected( isset( $comparison[ $slot ] ) ? $comparison[ $slot ] : 0, $remedy->ID ); ?>><?php echo esc_html( $remedy->post_title ); ?></option><?php endforeach; ?></select></label>
-				<?php endfor; ?>
-				<button class="srf-button" type="submit">Compare Selected Remedies</button>
+				<label>Select up to three remedies<select name="radar_remedy_compare[]" multiple size="8" data-srf-remedy-select aria-describedby="srf-remedy-selection-status"><?php foreach ( $remedies as $remedy ) : ?><option value="<?php echo absint( $remedy->ID ); ?>" <?php echo in_array( absint( $remedy->ID ), array_map( 'absint', $comparison ), true ) ? 'selected' : ''; ?>><?php echo esc_html( $remedy->post_title ); ?></option><?php endforeach; ?></select></label>
+				<div><p id="srf-remedy-selection-status" class="srf-selection-status" role="status" aria-live="polite">Select no more than three remedies.</p><button class="srf-button" type="submit">Compare Selected Remedies</button></div>
 			</form>
 			<?php if ( $comparison ) : echo SRF_Helpers::template( 'comparison', array( 'ids' => $comparison ) ); endif; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<?php else : ?>
@@ -64,7 +61,7 @@
 
 	<section class="srf-results" aria-labelledby="radar-results-title">
 		<div class="srf-section-head"><div><span>Educational Relationships</span><h2 id="radar-results-title">Radar Results</h2></div><p><?php echo absint( $query->found_posts ); ?> referenced entries found</p></div>
-		<?php if ( $can_save ) : ?><div class="srf-study-toolbar"><strong>Verified Doctor Study Builder</strong><span data-srf-selection-status>Select up to three Radar entries.</span><button class="srf-button" type="button" data-srf-open-study disabled>Prepare Private Study</button></div><?php endif; ?>
+		<?php if ( $can_save ) : ?><div class="srf-study-toolbar"><strong>Verified Doctor Study Builder</strong><span data-srf-selection-status role="status" aria-live="polite">Select up to three Radar entries.</span><button class="srf-button" type="button" data-srf-open-study disabled>Prepare Private Study</button></div><?php endif; ?>
 		<div class="srf-grid">
 			<?php if ( $query->have_posts() ) : while ( $query->have_posts() ) : $query->the_post(); echo SRF_Helpers::template( 'entry-card', array( 'entry_id' => get_the_ID(), 'can_save' => $can_save ) ); endwhile; else : ?>
 				<div class="srf-empty"><h3>No Radar entries matched your search</h3><p>Remove one or more filters, try a broader phrase, or return after referenced entries have been published.</p></div>
@@ -89,4 +86,4 @@
 
 	<section class="srf-connected"><div><span>Connected Knowledge</span><h2>Continue Responsible Research</h2><p>Review complete educational entries or connect with verified professionals.</p></div><div><a class="srf-button" href="<?php echo esc_url( $encyclopedia ); ?>">Open Encyclopedia</a><a class="srf-button srf-button-light" href="<?php echo esc_url( $doctors_url ); ?>">Find a Doctor</a></div></section>
 	<p class="srf-disclaimer">Related remedies are presented for educational review only. Radar does not identify a best remedy, diagnose a condition, prescribe treatment, recommend potency or dosage, promise a cure, or replace qualified medical care.</p>
-</main>
+</div>

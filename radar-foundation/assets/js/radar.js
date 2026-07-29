@@ -6,17 +6,32 @@
   var openButton = document.querySelector('[data-srf-open-study]');
   var panel = document.querySelector('[data-srf-study-panel]');
   var field = document.querySelector('[data-srf-entry-ids]');
+  var remedySelect = document.querySelector('[data-srf-remedy-select]');
+  var remedyStatus = document.getElementById('srf-remedy-selection-status');
+
+  if (remedySelect) {
+    remedySelect.addEventListener('change', function (event) {
+      var selected = Array.prototype.slice.call(remedySelect.selectedOptions);
+      if (selected.length > 3) {
+        event.target.options[event.target.selectedIndex].selected = false;
+        selected = Array.prototype.slice.call(remedySelect.selectedOptions);
+      }
+      if (remedyStatus) {
+        remedyStatus.textContent = selected.length ? selected.length + ' of 3 remedies selected.' : 'Select no more than three remedies.';
+      }
+    });
+  }
 
   if (!boxes.length || !status || !openButton || !panel || !field) {
     return;
   }
 
-  function selected() {
+  function selectedEntries() {
     return boxes.filter(function (box) { return box.checked; });
   }
 
   function update() {
-    var chosen = selected();
+    var chosen = selectedEntries();
     var limitReached = chosen.length >= 3;
 
     boxes.forEach(function (box) {
