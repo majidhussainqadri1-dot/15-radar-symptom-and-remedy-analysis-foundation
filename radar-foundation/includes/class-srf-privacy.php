@@ -39,6 +39,7 @@ final class SRF_Privacy {
 					array( 'name' => 'Radar Entry IDs', 'value' => $row->entry_ids ),
 					array( 'name' => 'Private Notes', 'value' => $row->notes ),
 					array( 'name' => 'Created', 'value' => $row->created_at ),
+					array( 'name' => 'Updated', 'value' => $row->updated_at ),
 				),
 			);
 		}
@@ -57,7 +58,7 @@ final class SRF_Privacy {
 
 	public function policy() {
 		if ( function_exists( 'wp_add_privacy_policy_content' ) ) {
-			wp_add_privacy_policy_content( 'Radar Foundation', '<p>Verified doctors may save private Radar study titles, selected public entry identifiers, and private research notes. Doctors are instructed not to include patient names, phone numbers, addresses, record numbers, or other identifying information. Saved studies can be exported or erased through WordPress privacy tools.</p>' );
+			wp_add_privacy_policy_content( 'Radar Foundation', '<p>Verified doctors may save private Radar study titles, selected public entry identifiers, and private research notes. Doctors are instructed not to include patient names, phone numbers, addresses, record numbers, or other identifying information. Saved studies are private, excluded from indexing and caching, removed when the owning account is deleted, and can be exported or erased through WordPress privacy tools.</p>' );
 		}
 	}
 }
