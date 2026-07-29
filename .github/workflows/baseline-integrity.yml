@@ -1,10 +1,11 @@
-name: Baseline Integrity
+name: File 15 Quality Gates
 
 on:
   push:
     branches:
       - main
       - baseline/file-15-original-import
+      - fix/file-15-corrective-release-0.1.1
   pull_request:
     branches:
       - main
@@ -13,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  integrity:
-    name: Integrity and syntax checks
+  quality:
+    name: PHP ${{ matrix.php-version }} quality gates
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -31,14 +32,22 @@ jobs:
           php-version: ${{ matrix.php-version }}
           coverage: none
 
-      - name: Verify imported source checksums
+      - name: Verify corrected source checksums
         run: sha256sum --check CHECKSUMS.sha256
 
       - name: Lint all PHP files
-        run: find radar-foundation -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
+        run: find radar-foundation tests -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
 
       - name: Check JavaScript syntax
         run: node --check radar-foundation/assets/js/radar.js
 
-      - name: Confirm expected baseline file count
+      - name: Run static regression gates
+        run: php tests/static-regression.php
+
+      - name: Confirm corrected plugin version
+        run: |
+          grep -Fq 'Version: 0.1.1' radar-foundation/radar-foundation.php
+          grep -Fq "define( 'SRF_VERSION', '0.1.1' );" radar-foundation/radar-foundation.php
+
+      - name: Confirm expected plugin source count
         run: test "$(find radar-foundation -type f | wc -l)" -eq 18
