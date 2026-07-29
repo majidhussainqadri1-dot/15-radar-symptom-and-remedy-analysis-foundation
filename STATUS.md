@@ -2,31 +2,46 @@
 
 ## Current state
 
-**Baseline source imported for review — not yet accepted into `main`.**
+**Corrective release candidate 0.1.1 implemented — automated and staging acceptance still required.**
 
-## Verified during import
+## Completed locally
 
-- Original ZIP SHA-256: `d317c8a532fb1d9047c95d44c2c88dfd2fd73680baf0e4ac50426a63779c0bf2`
-- Reconstructed ZIP checksum: **PASS**
-- ZIP integrity: **PASS**
-- Unsafe absolute/path-traversal archive entries: **NONE DETECTED**
-- Extracted source files: **18**
-- Extracted source bytes: **62,201**
-- PHP files linted locally with PHP 8.4: **15/15 PASS**
-- JavaScript files checked with Node.js 22: **1/1 PASS**
-- Secret-like credential patterns in supplied source: **NONE DETECTED by the baseline pattern scan**
+- Original 0.1.0 baseline preserved on its dedicated branch.
+- Corrective branch created from the reviewed baseline head.
+- All identified blocking and high-priority source defects corrected.
+- PHP syntax: 15/15 plugin files PASS on the local PHP runtime.
+- JavaScript syntax: 1/1 PASS.
+- Static regression gates: PASS.
+- Corrected source count: 18 files.
+- Corrected source ZIP created and checksum recorded.
 
-## Not yet established
+## Corrected controls
 
-This import does not establish production readiness. The following remain mandatory before release acceptance:
+- Dedicated Radar capabilities and verified-doctor submission permissions.
+- Context-independent publication validation and approval.
+- Approved license values and mandatory review date.
+- Metadata/status audit table and schema upgrade routine.
+- Safe page-collision behavior.
+- File 20 shell compatibility without duplicate navigation.
+- Structured-field keyword search.
+- Shortcode-aware privacy headers.
+- User-deletion cleanup, save throttling, and per-user Saved Studies cap.
+- Accessibility and remedy-selector corrections.
+- Safe uninstall behavior for plugin-managed pages.
 
-- Full code, security, privacy, permissions, and data-boundary audit.
-- WordPress fresh-install and upgrade testing.
-- Tests with Files 01, 03, 06, 07, and 09 active.
-- Founder, administrator, verified-doctor, and public-user workflow testing.
-- Database creation, privacy export/erasure, uninstall, and rollback testing.
-- Hostinger staging activation and runtime acceptance.
-- Responsive, accessibility, cache, SEO/noindex, and cross-browser testing.
-- Correction and retesting of every defect discovered during review.
+## Not yet accepted
 
-No merge or completion claim should be made until these gates pass.
+The following remain mandatory before merge or production deployment:
+
+- GitHub Actions quality gates on the corrective branch and pull request.
+- Independent code review of the corrected diff.
+- WordPress fresh-install and 0.1.0-to-0.1.1 upgrade tests.
+- REST, Classic Editor, scheduled publishing, import, and WP-CLI publication tests.
+- Founder, administrator, verified doctor, unverified doctor, student, patient, and anonymous role-matrix tests.
+- Page-slug collision test with unrelated existing content.
+- Saved Studies no-cache/noindex test on both managed and alternate shortcode pages.
+- Files 06, 07, 09, and 20 integration tests.
+- Responsive, keyboard, screen-reader, contrast, and cross-browser acceptance.
+- Backup, rollback, and uninstall/reinstall tests on Hostinger staging.
+
+The branch must remain unmerged until every defect found in the new review is corrected and retested.

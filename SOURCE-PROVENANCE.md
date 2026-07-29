@@ -1,19 +1,25 @@
 # Source Provenance
 
-## Original package
+## Original baseline package
 
 - **File number:** 15
 - **Original filename:** `15-radar-symptom-and-remedy-analysis-foundation-0.1.0.zip`
 - **Original ZIP SHA-256:** `d317c8a532fb1d9047c95d44c2c88dfd2fd73680baf0e4ac50426a63779c0bf2`
 - **Original top-level plugin directory:** `radar-foundation/`
-- **Plugin name:** Radar Symptom and Remedy Analysis Foundation
-- **Plugin version:** 0.1.0
-- **Source supplied through:** Sabri Social Homeopathy Platform project attachment
-- **Repository import date:** 29 July 2026
-- **Import branch:** `baseline/file-15-original-import`
+- **Original plugin version:** 0.1.0
+- **Baseline branch:** `baseline/file-15-original-import`
+- **Baseline import date:** 29 July 2026
 
-## Preservation statement
+The baseline branch preserves the supplied source without functional or formatting changes. Its checksums and import evidence remain the authoritative record of the original package.
 
-The files beneath `radar-foundation/` were reconstructed from the supplied ZIP, the reconstructed archive checksum was verified against the original checksum, and the source was extracted without functional or formatting changes.
+## Corrective release candidate
 
-`CHECKSUMS.sha256` records the checksum of every extracted source file. The baseline workflow verifies these checksums and performs PHP and JavaScript syntax checks. The original ZIP checksum remains the authoritative package-level provenance value.
+- **Corrective version:** 0.1.1
+- **Corrective branch:** `fix/file-15-corrective-release-0.1.1`
+- **Corrective ZIP:** `15-radar-symptom-and-remedy-analysis-foundation-0.1.1.zip`
+- **Corrective ZIP SHA-256:** `02bb6509f94aff9187da75133aea53234882245781d807a75bf4d8c1657b9448`
+- **Corrective source files:** 18
+- **Corrective source bytes:** 80,175
+- **Correction date:** 30 July 2026
+
+The corrective branch was derived from the exact baseline and changes only the plugin source, documentation, tests, checksums, and quality workflow required to repair the formal audit findings. `CHECKSUMS.sha256` on the corrective branch records every corrected plugin-source file.
