@@ -10,6 +10,7 @@ final class SRF_Frontend {
 		add_filter( 'the_content', array( $this, 'single_entry_content' ) );
 		add_action( 'template_redirect', array( $this, 'private_headers' ) );
 		add_filter( 'wp_robots', array( $this, 'robots' ) );
+		add_filter( 'posts_search', array( $this, 'keyword_search' ), 20, 2 );
 	}
 
 	public function assets() {
@@ -30,23 +31,23 @@ final class SRF_Frontend {
 		return SRF_Helpers::template(
 			'radar',
 			array(
-				'filters'       => $filters,
-				'query'         => $query,
-				'comparison'    => $comparison,
-				'categories'    => get_terms( array( 'taxonomy' => SRF_Helpers::TAX, 'hide_empty' => false ) ),
-				'radar_url'     => SRF_Helpers::page_url( 'radar' ),
-				'studies_url'   => SRF_Helpers::page_url( 'studies' ),
-				'encyclopedia'  => SRF_Helpers::encyclopedia_url(),
-				'doctors_url'   => SRF_Helpers::doctors_url(),
-				'can_save'      => SRF_Helpers::is_verified_doctor(),
-				'remedies'      => $this->remedies(),
+				'filters'      => $filters,
+				'query'        => $query,
+				'comparison'   => $comparison,
+				'categories'   => get_terms( array( 'taxonomy' => SRF_Helpers::TAX, 'hide_empty' => false ) ),
+				'radar_url'    => SRF_Helpers::page_url( 'radar' ),
+				'studies_url'  => SRF_Helpers::page_url( 'studies' ),
+				'encyclopedia' => SRF_Helpers::encyclopedia_url(),
+				'doctors_url'  => SRF_Helpers::doctors_url(),
+				'can_save'     => SRF_Helpers::is_verified_doctor(),
+				'remedies'     => $this->remedies(),
 			)
 		);
 	}
 
 	public function saved_studies() {
 		if ( ! is_user_logged_in() ) {
-			return '<div class="srf-notice"><h1>Log In to View Saved Radar Studies</h1><p>Public Radar research does not require an account. A verified doctor account is required to save private studies.</p><a class="srf-button" href="' . esc_url( wp_login_url( get_permalink() ) ) . '">Log In</a></div>';
+			return '<div class="srf-notice"><h1>Log In to View Saved Radar Studies</h1><p>Public Radar research does not require an account. A verified doctor account is required to save private studies.</p><a class="srf-button" href="' . esc_url( wp_login_url( SRF_Helpers::page_url( 'studies' ) ) ) . '">Log In</a></div>';
 		}
 		if ( ! SRF_Helpers::is_verified_doctor() ) {
 			return '<div class="srf-notice"><h1>Verified Doctor Access Required</h1><p>Private Radar studies are currently available only to verified doctors.</p></div>';
@@ -73,19 +74,33 @@ final class SRF_Frontend {
 	}
 
 	public function private_headers() {
-		$pages = SRF_Helpers::pages();
-		if ( ! empty( $pages['studies'] ) && is_page( absint( $pages['studies'] ) ) ) {
+		if ( SRF_Helpers::is_saved_studies_request() ) {
 			nocache_headers();
+			header( 'X-Robots-Tag: noindex, noarchive', true );
 		}
 	}
 
 	public function robots( $robots ) {
-		$pages = SRF_Helpers::pages();
-		if ( ! empty( $pages['studies'] ) && is_page( absint( $pages['studies'] ) ) ) {
+		if ( SRF_Helpers::is_saved_studies_request() ) {
 			$robots['noindex']   = true;
 			$robots['noarchive'] = true;
+			$robots['nofollow']  = true;
 		}
 		return $robots;
+	}
+
+	public function keyword_search( $search, $query ) {
+		$keyword = sanitize_text_field( (string) $query->get( 'srf_keyword' ) );
+		if ( ! $keyword || SRF_Helpers::TYPE !== $query->get( 'post_type' ) ) {
+			return $search;
+		}
+		global $wpdb;
+		$like = '%' . $wpdb->esc_like( $keyword ) . '%';
+		$keys = array_map( array( 'SRF_Helpers', 'meta_key' ), SRF_Helpers::searchable_fields() );
+		$placeholders = implode( ', ', array_fill( 0, count( $keys ), '%s' ) );
+		$sql = " AND ({$wpdb->posts}.post_title LIKE %s OR {$wpdb->posts}.post_content LIKE %s OR EXISTS (SELECT 1 FROM {$wpdb->postmeta} AS srf_keyword_meta WHERE srf_keyword_meta.post_id = {$wpdb->posts}.ID AND srf_keyword_meta.meta_key IN ({$placeholders}) AND srf_keyword_meta.meta_value LIKE %s))";
+		$params = array_merge( array( $like, $like ), $keys, array( $like ) );
+		return $search . $wpdb->prepare( $sql, $params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	private function filters() {
@@ -107,10 +122,8 @@ final class SRF_Frontend {
 			'orderby'        => 'modified',
 			'order'          => 'DESC',
 			'paged'          => isset( $_GET['radar_page'] ) ? max( 1, absint( $_GET['radar_page'] ) ) : 1,
+			'srf_keyword'    => $filters['keyword'],
 		);
-		if ( $filters['keyword'] ) {
-			$args['s'] = $filters['keyword'];
-		}
 		if ( $filters['category'] ) {
 			$args['tax_query'] = array(
 				array(
