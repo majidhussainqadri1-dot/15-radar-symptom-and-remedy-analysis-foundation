@@ -8,26 +8,34 @@ final class SRF_SEO {
 	}
 
 	public function schema() {
-		if ( ! is_singular( SRF_Helpers::TYPE ) ) {
+		if ( ! is_singular( SRF_Helpers::TYPE ) || 'publish' !== get_post_status( get_queried_object_id() ) ) {
 			return;
 		}
 		$post_id = get_queried_object_id();
 		$data = array(
-			'@context'      => 'https://schema.org',
-			'@type'         => 'DefinedTerm',
-			'name'          => get_the_title( $post_id ),
-			'description'   => wp_strip_all_tags( get_the_excerpt( $post_id ) ),
-			'url'           => get_permalink( $post_id ),
+			'@context'         => 'https://schema.org',
+			'@type'            => 'DefinedTerm',
+			'name'             => get_the_title( $post_id ),
+			'description'      => wp_strip_all_tags( get_the_excerpt( $post_id ) ),
+			'url'              => get_permalink( $post_id ),
 			'inDefinedTermSet' => array(
 				'@type' => 'DefinedTermSet',
 				'name'  => 'Radar Educational Symptom and Remedy Research',
 				'url'   => SRF_Helpers::page_url( 'radar' ),
 			),
-			'dateModified'  => get_post_modified_time( DATE_W3C, true, $post_id ),
+			'dateModified'     => get_post_modified_time( DATE_W3C, true, $post_id ),
 		);
-		$source = SRF_Helpers::meta( $post_id, 'reference_source' );
+		$source   = SRF_Helpers::meta( $post_id, 'reference_source' );
+		$license  = SRF_Helpers::meta( $post_id, 'source_license' );
+		$reviewed = SRF_Helpers::meta( $post_id, 'reviewed_date' );
 		if ( $source ) {
 			$data['citation'] = $source;
+		}
+		if ( $license ) {
+			$data['license'] = $license;
+		}
+		if ( $reviewed ) {
+			$data['dateModified'] = $reviewed;
 		}
 		echo '<script type="application/ld+json">' . wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
