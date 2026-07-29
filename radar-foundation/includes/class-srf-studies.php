@@ -6,6 +6,8 @@ final class SRF_Studies {
 	public function hooks() {
 		add_action( 'admin_post_srf_save_study', array( $this, 'save' ) );
 		add_action( 'admin_post_srf_delete_study', array( $this, 'delete' ) );
+		add_action( 'delete_user', array( $this, 'delete_user_studies' ) );
+		add_action( 'wpmu_delete_user', array( $this, 'delete_user_studies' ) );
 	}
 
 	public function save() {
@@ -13,6 +15,13 @@ final class SRF_Studies {
 			wp_die( esc_html__( 'Verified doctor access is required.', 'radar-foundation' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( 'srf_save_study', 'srf_nonce' );
+		$user_id = get_current_user_id();
+		$rate_key = 'srf_study_rate_' . $user_id;
+		if ( get_transient( $rate_key ) ) {
+			$this->redirect( 'rate_limited' );
+		}
+		set_transient( $rate_key, '1', 5 );
+
 		$title   = isset( $_POST['study_title'] ) ? $this->limit( sanitize_text_field( wp_unslash( $_POST['study_title'] ) ), 180 ) : '';
 		$notes   = isset( $_POST['study_notes'] ) ? $this->limit( sanitize_textarea_field( wp_unslash( $_POST['study_notes'] ) ), 3000 ) : '';
 		$confirm = ! empty( $_POST['no_patient_identity'] );
@@ -21,11 +30,16 @@ final class SRF_Studies {
 		if ( ! $title || ! $ids || ! $confirm ) {
 			$this->redirect( 'invalid' );
 		}
+
 		global $wpdb;
+		$count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . SRF_Helpers::table() . ' WHERE user_id = %d', $user_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( $count >= 500 ) {
+			$this->redirect( 'limit_reached' );
+		}
 		$now = current_time( 'mysql', true );
 		$ok  = $wpdb->insert(
 			SRF_Helpers::table(),
-			array( 'user_id' => get_current_user_id(), 'title' => $title, 'entry_ids' => implode( ',', $ids ), 'notes' => $notes, 'created_at' => $now, 'updated_at' => $now ),
+			array( 'user_id' => $user_id, 'title' => $title, 'entry_ids' => implode( ',', $ids ), 'notes' => $notes, 'created_at' => $now, 'updated_at' => $now ),
 			array( '%d', '%s', '%s', '%s', '%s', '%s' )
 		);
 		$this->redirect( false === $ok ? 'failed' : 'saved' );
@@ -41,6 +55,11 @@ final class SRF_Studies {
 		$wpdb->delete( SRF_Helpers::table(), array( 'id' => $id, 'user_id' => get_current_user_id() ), array( '%d', '%d' ) );
 		wp_safe_redirect( add_query_arg( 'radar_notice', 'deleted', SRF_Helpers::page_url( 'studies' ) ) );
 		exit;
+	}
+
+	public function delete_user_studies( $user_id ) {
+		global $wpdb;
+		$wpdb->delete( SRF_Helpers::table(), array( 'user_id' => absint( $user_id ) ), array( '%d' ) );
 	}
 
 	private function redirect( $notice ) {
