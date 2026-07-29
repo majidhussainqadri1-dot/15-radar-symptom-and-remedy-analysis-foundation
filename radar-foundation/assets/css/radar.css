@@ -53,7 +53,7 @@
 .srf-main-nav a:hover,
 .srf-main-nav a.is-active {
   background: var(--srf-orange);
-  color: #fff;
+  color: var(--srf-navy);
 }
 
 .srf-hero {
@@ -129,7 +129,7 @@
   background: var(--srf-orange);
   border: 1px solid var(--srf-orange);
   border-radius: 11px;
-  color: #fff !important;
+  color: var(--srf-navy) !important;
   cursor: pointer;
   display: inline-flex;
   font: 850 0.88rem/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
@@ -287,7 +287,7 @@
   border-radius: 18px;
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 20px;
 }
 
@@ -737,4 +737,18 @@
   .srf-notice * {
     scroll-behavior: auto !important;
   }
+}
+
+.srf-remedy-form select[multiple] {
+  min-height: 220px;
+}
+
+.srf-remedy-form > div {
+  align-self: end;
+}
+
+.srf-selection-status {
+  color: var(--srf-muted);
+  font-size: 0.82rem;
+  margin: 0 0 8px;
 }
