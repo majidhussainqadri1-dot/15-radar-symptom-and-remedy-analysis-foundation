@@ -1,0 +1,17 @@
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Local build and dependency artifacts
+node_modules/
+vendor/
+coverage/
+*.log
+
+# Local WordPress/runtime material
+wp-config.php
+wp-content/uploads/
