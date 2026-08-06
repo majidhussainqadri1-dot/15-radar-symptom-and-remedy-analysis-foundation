@@ -1,0 +1,44 @@
+name: Materialize File 15 Source
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/file-15-complete-v1.0.0
+    paths:
+      - ".github/workflows/materialize-file15.yml"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode and verify source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/xz-*.txt > /tmp/file15-source.b64
+          base64 --decode /tmp/file15-source.b64 > /tmp/file15-source.tar.xz
+          echo "b86611b0a4ce62f99d0b97e58a5efe4ae09d5cdceb85d7cff0067471ec7ac251  /tmp/file15-source.tar.xz" | sha256sum -c -
+          tar -xJf /tmp/file15-source.tar.xz -C .
+          rm -rf .bootstrap
+          rm -f .github/workflows/materialize-file15.yml
+      - name: Create source pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "feat: complete File 15 v1.0.0"
+          branch: "feat/file-15-materialized-v1.0.0"
+          base: "main"
+          delete-branch: true
+          title: "Complete File 15 — Radar and Trend Intelligence v1.0.0"
+          body: |
+            Materializes the complete File 15 implementation from the verified source archive.
+
+            Automated local evidence: PHP syntax, domain/security assertions, static requirements, JavaScript syntax, package parity and ZIP integrity are green.
+
+            Staging acceptance, live deployment and operational acceptance remain separate release gates.
