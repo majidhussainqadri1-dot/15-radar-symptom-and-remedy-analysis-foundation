@@ -1,5 +1,6 @@
 name: Materialize File 15 Source
 
+# Archive checksum repair verified before this retry.
 on:
   workflow_dispatch:
   push:
