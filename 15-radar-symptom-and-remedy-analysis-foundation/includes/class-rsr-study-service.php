@@ -48,6 +48,7 @@ final class RSR_Study_Service
                 'noindex' => true,
                 'no_cache' => true,
                 'pii_prohibited' => true,
+                'excluded_from_search_ai_feed_trends' => true,
             ],
         ];
     }
@@ -97,9 +98,14 @@ final class RSR_Study_Service
         if (is_wp_error($validated)) {
             return $validated;
         }
+        $encrypted_notes = $this->encrypt_notes($validated['notes']);
+        if (is_wp_error($encrypted_notes)) {
+            return $encrypted_notes;
+        }
+
         $now = current_time('mysql', true);
         $public_id = wp_generate_uuid4();
-        $wpdb->insert(
+        $inserted = $wpdb->insert(
             RSR_DB::table('studies'),
             [
                 'public_id' => $public_id,
@@ -108,7 +114,7 @@ final class RSR_Study_Service
                 'tags_json' => wp_json_encode($validated['tags']),
                 'query_json' => RSR_Domain::canonical_json($validated['query']),
                 'remedy_refs_json' => wp_json_encode($validated['remedy_refs']),
-                'notes_encrypted' => RSR_Crypto::encrypt($validated['notes']),
+                'notes_encrypted' => $encrypted_notes,
                 'status' => 'saved',
                 'version' => 1,
                 'created_at' => $now,
@@ -116,7 +122,7 @@ final class RSR_Study_Service
             ]
         );
 
-        if (!$wpdb->insert_id) {
+        if (!$inserted || !$wpdb->insert_id) {
             return new WP_Error('rsr_study_create_failed', __('The study could not be saved.', RSR_TEXT_DOMAIN), ['status' => 500]);
         }
         $row = $this->find_owned($public_id, $user_id);
@@ -151,6 +157,11 @@ final class RSR_Study_Service
         if (is_wp_error($validated)) {
             return $validated;
         }
+        $encrypted_notes = $this->encrypt_notes($validated['notes']);
+        if (is_wp_error($encrypted_notes)) {
+            return $encrypted_notes;
+        }
+
         $status = in_array(($data['status'] ?? 'saved'), ['saved', 'archived'], true) ? $data['status'] : 'saved';
         global $wpdb;
         $affected = $wpdb->query(
@@ -160,7 +171,7 @@ final class RSR_Study_Service
                 wp_json_encode($validated['tags']),
                 RSR_Domain::canonical_json($validated['query']),
                 wp_json_encode($validated['remedy_refs']),
-                RSR_Crypto::encrypt($validated['notes']),
+                $encrypted_notes,
                 $status,
                 current_time('mysql', true),
                 $public_id,
@@ -229,11 +240,11 @@ final class RSR_Study_Service
         foreach ((array)$rows as $row) {
             $items[] = $this->dto($row, true);
         }
-        RSR_DB::audit('export_studies', 'radar_study_collection', (string)$user_id, 'data_portability', 'success');
+        RSR_DB::audit('export_studies', 'radar_study_collection', self::pseudonymous_owner_id($user_id), 'data_portability', 'success');
         return [
             'format' => 'rsr-private-studies-v1',
             'exported_at' => gmdate('c'),
-            'owner_user_id' => $user_id,
+            'owner_scope' => 'current_authenticated_account',
             'items' => $items,
             'notice' => __('Private studies must not contain patient-identifying information and are not clinical records.', RSR_TEXT_DOMAIN),
         ];
@@ -244,7 +255,7 @@ final class RSR_Study_Service
         global $wpdb;
         $count = (int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . RSR_DB::table('studies') . ' WHERE owner_user_id = %d', $user_id));
         $wpdb->delete(RSR_DB::table('studies'), ['owner_user_id' => $user_id], ['%d']);
-        RSR_DB::audit('purge_user_studies', 'radar_study_collection', (string)$user_id, 'user_deletion', 'success', null, ['count' => $count]);
+        RSR_DB::audit('purge_user_studies', 'radar_study_collection', self::pseudonymous_owner_id($user_id), 'user_deletion', 'success', null, ['count' => $count]);
         return $count;
     }
 
@@ -291,6 +302,17 @@ final class RSR_Study_Service
         if (count($remedies) > RSR_Domain::MAX_COMPARE_REMEDIES) {
             return new WP_Error('rsr_maximum_three_remedies', __('A study may compare no more than three remedies.', RSR_TEXT_DOMAIN), ['status' => 400]);
         }
+        $remedy_validation = apply_filters('rsr_validate_study_remedy_refs', null, $remedies, 'v1');
+        if (is_wp_error($remedy_validation)) {
+            return $remedy_validation;
+        }
+        if ($remedies !== [] && $remedy_validation !== true) {
+            return new WP_Error(
+                'rsr_study_remedy_validation_unavailable',
+                __('Saved remedy references cannot be validated against the current File 06 contract.', RSR_TEXT_DOMAIN),
+                ['status' => 503]
+            );
+        }
 
         $notes = wp_kses_post((string)($data['notes'] ?? ''));
         if (strlen($notes) > RSR_Domain::MAX_STUDY_NOTES_BYTES) {
@@ -324,6 +346,23 @@ final class RSR_Study_Service
             'notes' => $notes,
             'tags' => $tags,
         ];
+    }
+
+    /** @return string|WP_Error */
+    private function encrypt_notes(string $notes)
+    {
+        try {
+            return RSR_Crypto::encrypt($notes);
+        } catch (Throwable $error) {
+            RSR_Observability::log('error', 'study_encrypt_failed', [
+                'error_class' => get_class($error),
+            ]);
+            return new WP_Error(
+                'rsr_study_encryption_unavailable',
+                __('The private study could not be encrypted. Nothing was saved.', RSR_TEXT_DOMAIN),
+                ['status' => 503]
+            );
+        }
     }
 
     /** @return array<string, mixed>|null */
@@ -370,5 +409,10 @@ final class RSR_Study_Service
             'created_at' => mysql_to_rfc3339((string)$row['created_at']),
             'updated_at' => mysql_to_rfc3339((string)$row['updated_at']),
         ];
+    }
+
+    private static function pseudonymous_owner_id(int $user_id): string
+    {
+        return 'owner:' . substr(hash_hmac('sha256', (string)$user_id, wp_salt('auth')), 0, 24);
     }
 }
