@@ -1,19 +1,21 @@
 # File 15 Status
 
 Corrective review branch: `audit/four-plan-compliance-2026-08-06`  
-Corrective pull request: `#4`  
-Release candidate: `1.1.0`
+Corrective pull request: `#4` — merged  
+Corrective source merge: `2b6205d98cc413cb8593efe7ca4f4d0d81bf1c47`  
+Release: `1.1.0`
 
 ## Repository release status
 
 | Layer | Status | Evidence |
 |---|---|---|
 | File-level specification | Complete | File 15 master plan v1.0 |
-| Four-plan compliance audit | Corrected in v1.1.0 branch | `docs/FOUR-PLAN-AUDIT-2026-08-06.md` |
-| Canonical source implementation | Complete in corrective branch | Plugin folder and requirement traceability |
-| Static/unit/domain/four-plan QA | Complete after `scripts/build.sh` is green | `tests/`, CI workflow, release evidence |
-| Reproducible package | Complete after build | `dist/`, SHA-256, manifest |
-| GitHub review/merge | PR #4 open; merge pending green quality gates | Corrective branch and PR evidence |
+| Four-plan compliance audit | Complete; four review/fix rounds | `docs/FOUR-PLAN-AUDIT-2026-08-06.md` |
+| Canonical source implementation | Complete and merged to `main` | Plugin folder and requirement traceability |
+| PHP/JS/domain/static/four-plan QA | PASS in reproduced deterministic build | `docs/RELEASE-EVIDENCE.md` |
+| Reproducible package | Complete | v1.1.0 ZIP, SHA-256 and source manifest |
+| GitHub review/merge | Complete | PR #4 and merge commit |
+| GitHub Actions v1.1.0 run | Not created by connector-authored commits | No hosted-green claim; local deterministic evidence recorded |
 | Hostinger-equivalent staging | Pending external execution | `docs/STAGING-ACCEPTANCE.md` |
 | Live deployment | Not claimed | Founder approval + deployment evidence required |
 | Operational service | Not claimed | Providers, staffing, monitoring, backup and incident evidence required |
