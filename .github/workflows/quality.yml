@@ -1,0 +1,43 @@
+name: File 15 Quality Gates
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: PHP ${{ matrix.php }} quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and test
+        run: bash scripts/build.sh
+      - name: Verify canonical plugin version
+        run: |
+          grep -Fq 'Version: 1.0.0' 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq "define('RSR_VERSION', '1.0.0')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+      - name: Upload release evidence
+        if: matrix.php == '8.3'
+        uses: actions/upload-artifact@v4
+        with:
+          name: file-15-release-evidence
+          path: |
+            dist/
+            docs/RELEASE-EVIDENCE.md
+          if-no-files-found: error
