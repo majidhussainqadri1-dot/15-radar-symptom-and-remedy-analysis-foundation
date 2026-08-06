@@ -29,10 +29,30 @@ final class RSR_Provider_Registry
 
     public static function register(RSR_Trend_Provider $provider): void
     {
+        $key = sanitize_key($provider->key());
+        $capabilities = $provider->capabilities();
+        $valid = $key !== ''
+            && isset($capabilities['windows'], $capabilities['privacy'], $capabilities['network'])
+            && is_array($capabilities['windows'])
+            && $capabilities['privacy'] === 'aggregated_only'
+            && array_diff($capabilities['windows'], ['daily', 'weekly', 'monthly', 'yearly']) === [];
+        if (!$valid) {
+            throw new InvalidArgumentException('Invalid File 15 trend provider contract.');
+        }
+        if (!empty($capabilities['network'])) {
+            foreach (['timeout_seconds', 'destination_allowlist', 'supports_replay'] as $required) {
+                if (!array_key_exists($required, $capabilities)) {
+                    throw new InvalidArgumentException('Network provider capability contract is incomplete.');
+                }
+            }
+            if ((int)$capabilities['timeout_seconds'] < 1 || (int)$capabilities['timeout_seconds'] > 60 || !is_array($capabilities['destination_allowlist'])) {
+                throw new InvalidArgumentException('Network provider safety contract is invalid.');
+            }
+        }
         if (self::$providers === null) {
             self::$providers = [];
         }
-        self::$providers[$provider->key()] = $provider;
+        self::$providers[$key] = $provider;
     }
 
     /** @return array<string, RSR_Trend_Provider> */

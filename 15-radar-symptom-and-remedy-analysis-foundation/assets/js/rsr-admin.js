@@ -1,5 +1,7 @@
 (() => {
     'use strict';
+    const strings = window.RSR_CONFIG?.strings || {};
+    const format = (template, value) => String(template || '%s').replace('%s', String(value));
     const app = document.querySelector('[data-rsr-manage-app]');
     if (!app || !window.RSR_API) return;
 
@@ -53,9 +55,9 @@
         const source = parse(row.dataset.source || '{}');
         if (event.target.closest('[data-rsr-source-edit]')) openEditor(source);
         if (event.target.closest('[data-rsr-source-ingest]')) {
-            const windowType = window.prompt('Window: daily, weekly, monthly, or yearly', 'daily');
+            const windowType = window.prompt(strings.windowPrompt || 'Window: daily, weekly, monthly, or yearly', 'daily');
             if (!windowType) return;
-            setStatus(sourceStatus, 'Running ingestion…');
+            setStatus(sourceStatus, strings.runningIngestion || 'Running ingestion…');
             try {
                 const token = `ui|${source.public_id}|${windowType}|${new Date().toISOString()}`;
                 const payload = {
@@ -70,7 +72,7 @@
                     headers: { 'Idempotency-Key': token },
                     body: JSON.stringify(payload),
                 });
-                setStatus(sourceStatus, `Ingestion ${result.status}.`);
+                setStatus(sourceStatus, format(strings.ingestionStatus || 'Ingestion status: %s', result.status));
                 window.setTimeout(() => window.location.reload(), 700);
             } catch (error) {
                 setStatus(sourceStatus, error.message, true);
@@ -80,10 +82,10 @@
 
     form?.addEventListener('submit', async (event) => {
         event.preventDefault();
-        setStatus(sourceStatus, 'Saving source…');
+        setStatus(sourceStatus, strings.savingSource || 'Saving source…');
         const rows = parse(form.elements.rows_json.value, null);
         if (!Array.isArray(rows)) {
-            setStatus(sourceStatus, 'Manual aggregate rows must be a JSON array.', true);
+            setStatus(sourceStatus, strings.rowsArrayRequired || 'Manual aggregate rows must be a JSON array.', true);
             return;
         }
         const id = form.elements.public_id.value;
@@ -112,7 +114,7 @@
                 method: id ? 'PUT' : 'POST',
                 body: JSON.stringify(payload),
             });
-            setStatus(sourceStatus, 'Source saved.');
+            setStatus(sourceStatus, strings.sourceSaved || 'Source saved.');
             window.setTimeout(() => window.location.reload(), 600);
         } catch (error) {
             setStatus(sourceStatus, error.message, true);
@@ -126,34 +128,34 @@
         const transition = event.target.closest('[data-rsr-report-transition]');
         if (transition) {
             const toState = transition.dataset.rsrReportTransition;
-            const reason = window.prompt(`Reason for transition to ${toState}`, 'Reviewed according to File 15 editorial policy.');
+            const reason = window.prompt(format(strings.transitionReason || 'Reason for transition to %s', toState), strings.defaultTransitionReason || 'Reviewed according to File 15 editorial policy.');
             if (reason === null) return;
-            setStatus(reportStatus, 'Updating report…');
+            setStatus(reportStatus, strings.updatingReport || 'Updating report…');
             try {
                 await window.RSR_API.fetch(`manage/reports/${encodeURIComponent(report.public_id)}/transition`, {
                     method: 'POST',
                     body: JSON.stringify({ to_state: toState, version: report.version, reason }),
                 });
-                setStatus(reportStatus, `Report moved to ${toState}.`);
+                setStatus(reportStatus, format(strings.reportMoved || 'Report moved to %s.', toState));
                 window.setTimeout(() => window.location.reload(), 600);
             } catch (error) {
                 setStatus(reportStatus, error.message, true);
             }
         }
         if (event.target.closest('[data-rsr-report-correct]')) {
-            const action = window.prompt('Type “correct” or “retract”', 'correct');
+            const action = window.prompt(strings.correctionActionPrompt || 'Type correct or retract', 'correct');
             if (!['correct', 'retract'].includes(String(action))) return;
-            const reason = window.prompt('Internal correction reason');
+            const reason = window.prompt(strings.correctionReasonPrompt || 'Internal correction reason');
             if (!reason) return;
-            const publicNotice = window.prompt('Public correction notice');
+            const publicNotice = window.prompt(strings.publicNoticePrompt || 'Public correction notice');
             if (!publicNotice) return;
-            setStatus(reportStatus, 'Applying correction…');
+            setStatus(reportStatus, strings.applyingCorrection || 'Applying correction…');
             try {
                 await window.RSR_API.fetch(`manage/reports/${encodeURIComponent(report.public_id)}/correction`, {
                     method: 'POST',
                     body: JSON.stringify({ action, version: report.version, reason, public_notice: publicNotice }),
                 });
-                setStatus(reportStatus, `Report ${action === 'retract' ? 'retracted' : 'corrected'}.`);
+                setStatus(reportStatus, action === 'retract' ? (strings.reportRetracted || 'Report retracted.') : (strings.reportCorrected || 'Report corrected.'));
                 window.setTimeout(() => window.location.reload(), 600);
             } catch (error) {
                 setStatus(reportStatus, error.message, true);

@@ -47,11 +47,15 @@ final class RSR_Four_Plan_Compliance
 
         $route = $request->get_route();
         $method = strtoupper($request->get_method());
+        $content_length = (int)($request->get_header('Content-Length') ?: 0);
+        if ($content_length > RSR_Hardening::MAX_MANUAL_BODY_BYTES) {
+            return new WP_Error('rsr_request_too_large', __('The request body exceeds the File 15 safety limit.', RSR_TEXT_DOMAIN), ['status' => 413]);
+        }
 
         if ($method === 'DELETE' && preg_match('#^/rsr/v1/studies/[^/]+$#', $route)) {
-            $version = self::parse_entity_version($request->get_param('version'));
+            $version = RSR_Hardening::parse_entity_version($request->get_param('version'));
             if ($version <= 0) {
-                $version = self::parse_entity_version($request->get_header('If-Match'));
+                $version = RSR_Hardening::parse_entity_version($request->get_header('If-Match'));
             }
             if ($version > 0) {
                 $request->set_param('version', $version);
@@ -180,8 +184,8 @@ final class RSR_Four_Plan_Compliance
     public function protect_query_routes(): void
     {
         $route = sanitize_key((string)get_query_var('rsr_route'));
-        $has_research_query = ($route === 'radar' && (isset($_GET['keyword']) || self::has_filter_query()))
-            || ($route === 'compare' && isset($_GET['remedies']));
+        $has_research_query = ($route === 'radar' && (isset($_GET['keyword'], $_POST['keyword']) || self::has_filter_query()))
+            || ($route === 'compare' && (isset($_GET['remedies']) || isset($_POST['remedies'])));
 
         if (!$has_research_query) {
             return;
@@ -199,8 +203,8 @@ final class RSR_Four_Plan_Compliance
     public function protect_query_robots(array $robots): array
     {
         $route = sanitize_key((string)get_query_var('rsr_route'));
-        $has_research_query = ($route === 'radar' && (isset($_GET['keyword']) || self::has_filter_query()))
-            || ($route === 'compare' && isset($_GET['remedies']));
+        $has_research_query = ($route === 'radar' && (isset($_GET['keyword'], $_POST['keyword']) || self::has_filter_query()))
+            || ($route === 'compare' && (isset($_GET['remedies']) || isset($_POST['remedies'])));
         if ($has_research_query) {
             $robots['noindex'] = true;
             $robots['noarchive'] = true;
@@ -339,42 +343,19 @@ final class RSR_Four_Plan_Compliance
     /** @param mixed $value */
     public static function parse_entity_version($value): int
     {
-        if (is_int($value) || is_float($value)) {
-            return max(0, (int)$value);
-        }
-        $value = trim((string)$value);
-        if ($value === '') {
-            return 0;
-        }
-        if (preg_match('/(?:W\/)?["\']?(?:v)?(\d+)["\']?/', $value, $matches)) {
-            return max(0, (int)$matches[1]);
-        }
-        return 0;
+        return RSR_Hardening::parse_entity_version($value);
     }
 
     /** @return true|WP_Error */
     private function rate_limit(string $bucket, int $maximum, int $period)
     {
-        $subject = get_current_user_id() > 0
-            ? 'u:' . get_current_user_id()
-            : 'i:' . (RSR_Observability::request_ip_hash() ?: 'unknown');
-        $key = 'rsr_cp_' . substr(hash('sha256', $bucket . '|' . $subject), 0, 38);
-        $count = (int)get_transient($key);
-        if ($count >= $maximum) {
-            RSR_DB::audit('rate_limit', 'api_bucket', $bucket, 'abuse_prevention', 'denied', 'too_many_requests');
-            return new WP_Error(
-                'rsr_rate_limited',
-                __('Too many requests. Try again shortly.', RSR_TEXT_DOMAIN),
-                ['status' => 429, 'retry_after' => $period]
-            );
-        }
-        set_transient($key, $count + 1, $period);
-        return true;
+        return RSR_Hardening::rate_limit($bucket, $maximum, $period);
     }
+
 
     private static function has_filter_query(): bool
     {
-        foreach (array_keys($_GET) as $key) {
+        foreach (array_unique(array_merge(array_keys($_GET), array_keys($_POST))) as $key) {
             if (strpos((string)$key, 'filter_') === 0) {
                 return true;
             }

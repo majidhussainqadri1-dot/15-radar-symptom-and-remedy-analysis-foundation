@@ -99,6 +99,12 @@ final class RSR_API
             'permission_callback' => '__return_true',
         ]);
 
+        register_rest_route(self::NS, '/trends/page', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => fn(WP_REST_Request $request) => $this->respond($this->trends->public_reports_page($request->get_params())),
+            'permission_callback' => '__return_true',
+        ]);
+
         register_rest_route(self::NS, '/trends/(?P<id>[A-Za-z0-9._:-]+)', [
             'methods' => WP_REST_Server::READABLE,
             'callback' => [$this, 'trend_get'],
@@ -133,13 +139,13 @@ final class RSR_API
         register_rest_route(self::NS, '/manage/reports', [
             'methods' => WP_REST_Server::READABLE,
             'callback' => fn(WP_REST_Request $request) => $this->respond($this->trends->manage_reports($request->get_params())),
-            'permission_callback' => fn() => $this->any_capability_permission([RSR_Capabilities::REVIEW_REPORTS, RSR_Capabilities::PUBLISH_REPORTS, RSR_Capabilities::CORRECT_REPORTS]),
+            'permission_callback' => fn() => $this->any_capability_permission([RSR_Capabilities::REVIEW_REPORTS, RSR_Capabilities::APPROVE_REPORTS, RSR_Capabilities::PUBLISH_REPORTS, RSR_Capabilities::CORRECT_REPORTS]),
         ]);
 
         register_rest_route(self::NS, '/manage/reports/(?P<id>[A-Za-z0-9._:-]+)/transition', [
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => [$this, 'report_transition'],
-            'permission_callback' => fn() => $this->any_capability_permission([RSR_Capabilities::REVIEW_REPORTS, RSR_Capabilities::PUBLISH_REPORTS]),
+            'permission_callback' => fn() => $this->any_capability_permission([RSR_Capabilities::REVIEW_REPORTS, RSR_Capabilities::APPROVE_REPORTS, RSR_Capabilities::PUBLISH_REPORTS]),
         ]);
 
         register_rest_route(self::NS, '/manage/reports/(?P<id>[A-Za-z0-9._:-]+)/correction', [
@@ -225,7 +231,10 @@ final class RSR_API
     /** @return WP_REST_Response|WP_Error */
     public function study_delete(WP_REST_Request $request)
     {
-        $expected = (int)($request->get_param('version') ?: $request->get_header('If-Match'));
+        $expected = RSR_Hardening::parse_entity_version($request->get_param('version'));
+        if ($expected <= 0) {
+            $expected = RSR_Hardening::parse_entity_version($request->get_header('If-Match'));
+        }
         return $this->respond($this->studies->delete((string)$request['id'], get_current_user_id(), $expected));
     }
 
@@ -371,15 +380,7 @@ final class RSR_API
     /** @return true|WP_Error */
     private function rate_limit(string $bucket, int $maximum, int $period)
     {
-        $subject = get_current_user_id() > 0 ? 'u:' . get_current_user_id() : 'i:' . (RSR_Observability::request_ip_hash() ?: 'unknown');
-        $key = 'rsr_rl_' . substr(hash('sha256', $bucket . '|' . $subject), 0, 38);
-        $count = (int)get_transient($key);
-        if ($count >= $maximum) {
-            RSR_DB::audit('rate_limit', 'api_bucket', $bucket, 'abuse_prevention', 'denied', 'too_many_requests');
-            return new WP_Error('rsr_rate_limited', __('Too many requests. Try again shortly.', RSR_TEXT_DOMAIN), ['status' => 429]);
-        }
-        set_transient($key, $count + 1, $period);
-        return true;
+        return RSR_Hardening::rate_limit($bucket, $maximum, $period);
     }
 
     /**

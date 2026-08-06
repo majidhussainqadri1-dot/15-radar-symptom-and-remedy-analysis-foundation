@@ -4,7 +4,7 @@ Tags: homeopathy, research, radar, trends, remedies, analytics
 Requires at least: 6.5
 Tested up to: 7.0.1
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,7 +36,7 @@ This is an educational research system. It does not diagnose, prescribe, select 
 1. Back up the database and files.
 2. Install on a Hostinger-equivalent staging site first.
 3. Activate the plugin.
-4. Confirm the ten `rsr_` tables, rewrite routes, scheduled events, capabilities, and diagnostics.
+4. Confirm the twelve `rsr_` tables, rewrite routes, scheduled events, capabilities, and diagnostics.
 5. Connect File 00 verified/current claim adapters and File 06 remedy contracts.
 6. Add only licensed aggregate trend sources.
 7. Execute the complete staging acceptance matrix in `docs/STAGING-ACCEPTANCE.md` before any production deployment.
@@ -64,6 +64,9 @@ No. Automated and manual ingestion creates or refreshes a draft. Separate analys
 No. Only public approved Radar results and published/corrected public reports are exposed through integration contracts.
 
 == Changelog ==
+
+= 1.2.0 =
+* Forty-round review release with atomic inbox/rate limits, key rotation, bounded input processing, stricter provenance, transactional report corrections, and expanded regression evidence.
 
 = 1.1.0 =
 * Completed four-plan compliance review against the three platform constitutions and the File 15 plan.

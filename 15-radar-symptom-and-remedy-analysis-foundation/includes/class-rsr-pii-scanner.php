@@ -6,13 +6,12 @@ if (!defined('ABSPATH') && !defined('RSR_TESTING')) {
     exit;
 }
 
-/**
- * Conservative scanner that prevents private Radar studies from becoming a
- * surrogate patient record. It is intentionally strict and returns categories,
- * never the matched secret itself.
- */
 final class RSR_PII_Scanner
 {
+    private const MAX_DEPTH = 8;
+    private const MAX_NODES = 500;
+    private const MAX_BYTES = 65536;
+
     /** @return array<string, string> */
     public static function patterns(): array
     {
@@ -28,32 +27,44 @@ final class RSR_PII_Scanner
         ];
     }
 
-    /**
-     * @param mixed $value
-     * @return array{safe: bool, categories: array<int, string>}
-     */
+    /** @param mixed $value @return array{safe: bool, categories: array<int, string>} */
     public static function scan($value): array
     {
-        $text = self::flatten($value);
+        $state = ['nodes' => 0, 'bytes' => 0, 'too_deep' => false, 'too_large' => false];
+        $text = self::flatten($value, 0, $state);
         $categories = [];
-
+        if ($state['too_deep']) {
+            $categories[] = 'input_too_complex';
+        }
+        if ($state['too_large']) {
+            $categories[] = 'input_too_large';
+        }
         foreach (self::patterns() as $category => $pattern) {
             if (preg_match($pattern, $text) === 1) {
                 $categories[] = $category;
             }
         }
-
-        return [
-            'safe' => $categories === [],
-            'categories' => array_values(array_unique($categories)),
-        ];
+        $categories = array_values(array_unique($categories));
+        return ['safe' => $categories === [], 'categories' => $categories];
     }
 
-    /** @param mixed $value */
-    private static function flatten($value): string
+    /** @param mixed $value @param array<string,mixed> $state */
+    private static function flatten($value, int $depth, array &$state): string
     {
+        $state['nodes']++;
+        if ($depth > self::MAX_DEPTH || $state['nodes'] > self::MAX_NODES) {
+            $state['too_deep'] = true;
+            return '';
+        }
         if (is_scalar($value) || $value === null) {
-            return (string)$value;
+            $text = (string)$value;
+            $remaining = max(0, self::MAX_BYTES - (int)$state['bytes']);
+            if (strlen($text) > $remaining) {
+                $state['too_large'] = true;
+                $text = substr($text, 0, $remaining);
+            }
+            $state['bytes'] += strlen($text);
+            return $text;
         }
         if (is_object($value)) {
             $value = get_object_vars($value);
@@ -61,11 +72,13 @@ final class RSR_PII_Scanner
         if (!is_array($value)) {
             return '';
         }
-
         $parts = [];
         foreach ($value as $key => $item) {
-            $parts[] = (string)$key;
-            $parts[] = self::flatten($item);
+            if ($state['too_large'] || $state['too_deep']) {
+                break;
+            }
+            $parts[] = self::flatten((string)$key, $depth + 1, $state);
+            $parts[] = self::flatten($item, $depth + 1, $state);
         }
         return implode("\n", $parts);
     }

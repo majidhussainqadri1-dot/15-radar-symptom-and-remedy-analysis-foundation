@@ -152,6 +152,17 @@ final class RSR_Study_Service
         if ($expected !== (int)$current['version']) {
             return new WP_Error('rsr_version_conflict', __('The study changed in another session. Reload and try again.', RSR_TEXT_DOMAIN), ['status' => 409]);
         }
+        if (!empty($current['notes_encrypted'])) {
+            try {
+                RSR_Crypto::decrypt((string)$current['notes_encrypted']);
+            } catch (Throwable $error) {
+                return new WP_Error(
+                    'rsr_study_key_unavailable',
+                    __('This study cannot be updated until its previous encryption key is restored.', RSR_TEXT_DOMAIN),
+                    ['status' => 409]
+                );
+            }
+        }
 
         $validated = $this->validate_payload($data);
         if (is_wp_error($validated)) {
@@ -385,6 +396,7 @@ final class RSR_Study_Service
     private function dto(array $row, bool $include_notes): array
     {
         $notes = '';
+        $notes_unavailable = false;
         if ($include_notes && !empty($row['notes_encrypted'])) {
             try {
                 $notes = RSR_Crypto::decrypt((string)$row['notes_encrypted']);
@@ -394,6 +406,7 @@ final class RSR_Study_Service
                     'error_class' => get_class($error),
                 ]);
                 $notes = '';
+                $notes_unavailable = true;
             }
         }
 
@@ -404,6 +417,7 @@ final class RSR_Study_Service
             'query' => json_decode((string)$row['query_json'], true) ?: [],
             'remedy_refs' => json_decode((string)$row['remedy_refs_json'], true) ?: [],
             'notes' => $notes,
+            'notes_unavailable' => $notes_unavailable,
             'status' => (string)$row['status'],
             'version' => (int)$row['version'],
             'created_at' => mysql_to_rfc3339((string)$row['created_at']),

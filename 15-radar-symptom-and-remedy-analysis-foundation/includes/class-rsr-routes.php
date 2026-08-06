@@ -73,6 +73,16 @@ final class RSR_Routes
             return $template;
         }
 
+        if (($route === 'radar' && $this->has_research_query()) || ($route === 'compare' && $this->request_remedies() !== [])) {
+            $limited = RSR_Hardening::rate_limit('html_' . $route, $route === 'radar' ? 120 : 90, MINUTE_IN_SECONDS);
+            if (is_wp_error($limited)) {
+                status_header((int)($limited->get_error_data()['status'] ?? 429));
+                nocache_headers();
+                self::$view = ['route' => 'error', 'error' => $limited];
+                return RSR_DIR . 'templates/error.php';
+            }
+        }
+
         $access = $this->authorize_route($route);
         if (is_wp_error($access)) {
             status_header((int)($access->get_error_data()['status'] ?? 403));
@@ -111,6 +121,22 @@ final class RSR_Routes
                 'invalidStructuredQuery' => __('Structured query JSON is invalid.', RSR_TEXT_DOMAIN),
                 'maximumThree' => __('Choose no more than three remedies.', RSR_TEXT_DOMAIN),
                 'confirmDelete' => __('Delete this private study?', RSR_TEXT_DOMAIN),
+                'windowPrompt' => __('Window: daily, weekly, monthly, or yearly', RSR_TEXT_DOMAIN),
+                'runningIngestion' => __('Running ingestion…', RSR_TEXT_DOMAIN),
+                'ingestionStatus' => __('Ingestion status: %s', RSR_TEXT_DOMAIN),
+                'savingSource' => __('Saving source…', RSR_TEXT_DOMAIN),
+                'rowsArrayRequired' => __('Manual aggregate rows must be a JSON array.', RSR_TEXT_DOMAIN),
+                'sourceSaved' => __('Source saved.', RSR_TEXT_DOMAIN),
+                'transitionReason' => __('Reason for transition to %s', RSR_TEXT_DOMAIN),
+                'defaultTransitionReason' => __('Reviewed according to File 15 editorial policy.', RSR_TEXT_DOMAIN),
+                'updatingReport' => __('Updating report…', RSR_TEXT_DOMAIN),
+                'reportMoved' => __('Report moved to %s.', RSR_TEXT_DOMAIN),
+                'correctionActionPrompt' => __('Type correct or retract', RSR_TEXT_DOMAIN),
+                'correctionReasonPrompt' => __('Internal correction reason', RSR_TEXT_DOMAIN),
+                'publicNoticePrompt' => __('Public correction notice', RSR_TEXT_DOMAIN),
+                'applyingCorrection' => __('Applying correction…', RSR_TEXT_DOMAIN),
+                'reportCorrected' => __('Report corrected.', RSR_TEXT_DOMAIN),
+                'reportRetracted' => __('Report retracted.', RSR_TEXT_DOMAIN),
             ],
         ]);
         if ($route === 'manage') {
@@ -194,7 +220,7 @@ final class RSR_Routes
     {
         $base = [
             'route' => $route,
-            'schema' => $this->radar->schema(),
+            'schema' => ['dimensions' => RSR_Domain::dimensions(), 'values' => []],
             'safety' => RSR_Radar_Service::safety_notice(),
             'urls' => [
                 'home' => home_url('/'),
@@ -209,14 +235,16 @@ final class RSR_Routes
             'can_manage_sources' => RSR_Capabilities::can(RSR_Capabilities::MANAGE_SOURCES),
             'can_run_ingestion' => RSR_Capabilities::can(RSR_Capabilities::RUN_INGESTION),
             'can_review_reports' => RSR_Capabilities::can(RSR_Capabilities::REVIEW_REPORTS),
+            'can_approve_reports' => RSR_Capabilities::can(RSR_Capabilities::APPROVE_REPORTS),
             'can_publish_reports' => RSR_Capabilities::can(RSR_Capabilities::PUBLISH_REPORTS),
             'can_correct_reports' => RSR_Capabilities::can(RSR_Capabilities::CORRECT_REPORTS),
-            'can_manage_reports' => $this->has_any_capability([RSR_Capabilities::REVIEW_REPORTS, RSR_Capabilities::PUBLISH_REPORTS, RSR_Capabilities::CORRECT_REPORTS]),
+            'can_manage_reports' => $this->has_any_capability([RSR_Capabilities::REVIEW_REPORTS, RSR_Capabilities::APPROVE_REPORTS, RSR_Capabilities::PUBLISH_REPORTS, RSR_Capabilities::CORRECT_REPORTS]),
             'can_view_diagnostics' => RSR_Capabilities::can(RSR_Capabilities::VIEW_DIAGNOSTICS),
             'can_manage' => $this->has_any_capability([
                 RSR_Capabilities::MANAGE_SOURCES,
                 RSR_Capabilities::RUN_INGESTION,
                 RSR_Capabilities::REVIEW_REPORTS,
+                RSR_Capabilities::APPROVE_REPORTS,
                 RSR_Capabilities::PUBLISH_REPORTS,
                 RSR_Capabilities::CORRECT_REPORTS,
                 RSR_Capabilities::VIEW_DIAGNOSTICS,
@@ -224,20 +252,21 @@ final class RSR_Routes
         ];
 
         if ($route === 'radar') {
+            $base['schema'] = $this->radar->schema();
             $query = $this->request_query();
             $base['query'] = $query;
             $search = ($query['keyword'] !== '' || $query['filters'] !== [])
-                ? $this->radar->search($query, 30, isset($_GET['cursor']) ? sanitize_text_field(wp_unslash((string)$_GET['cursor'])) : null)
+                ? $this->radar->search($query, 30, $this->request_scalar('cursor'))
                 : null;
             $base['results'] = is_array($search)
                 ? RSR_Four_Plan_Compliance::enhance_search_result($search, $query)
                 : $search;
         } elseif ($route === 'compare') {
-            $ids = isset($_GET['remedies']) ? array_map('sanitize_text_field', (array)wp_unslash($_GET['remedies'])) : [];
+            $ids = $this->request_remedies();
             $base['selected_ids'] = array_slice($ids, 0, RSR_Domain::MAX_COMPARE_REMEDIES);
             $base['comparison'] = $ids !== [] ? $this->radar->compare($ids) : null;
         } elseif ($route === 'studies') {
-            $base['studies'] = is_user_logged_in() ? $this->studies->list_own(get_current_user_id(), 50, null) : null;
+            $base['studies'] = is_user_logged_in() ? $this->studies->list_own(get_current_user_id(), 50, $this->request_scalar('cursor')) : null;
         } elseif ($route === 'trends') {
             $base['reports'] = $this->trends->public_reports([
                 'window_type' => isset($_GET['window']) ? sanitize_key(wp_unslash((string)$_GET['window'])) : '',
@@ -273,6 +302,7 @@ final class RSR_Routes
             RSR_Capabilities::MANAGE_SOURCES,
             RSR_Capabilities::RUN_INGESTION,
             RSR_Capabilities::REVIEW_REPORTS,
+            RSR_Capabilities::APPROVE_REPORTS,
             RSR_Capabilities::PUBLISH_REPORTS,
             RSR_Capabilities::CORRECT_REPORTS,
             RSR_Capabilities::VIEW_DIAGNOSTICS,
@@ -296,11 +326,12 @@ final class RSR_Routes
     /** @return array<string, mixed> */
     private function request_query(): array
     {
+        $request = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' ? $_POST : $_GET;
         $filters = [];
         foreach (array_keys(RSR_Domain::dimensions()) as $dimension) {
             $key = 'filter_' . $dimension;
-            if (isset($_GET[$key])) {
-                $values = array_map('sanitize_text_field', (array)wp_unslash($_GET[$key]));
+            if (isset($request[$key])) {
+                $values = array_map('sanitize_text_field', (array)wp_unslash($request[$key]));
                 $values = array_values(array_filter($values, static fn(string $value): bool => $value !== ''));
                 if ($values !== []) {
                     $filters[$dimension] = $values;
@@ -308,10 +339,35 @@ final class RSR_Routes
             }
         }
         return [
-            'keyword' => isset($_GET['keyword']) ? sanitize_text_field(wp_unslash((string)$_GET['keyword'])) : '',
-            'mode' => isset($_GET['mode']) && strtoupper((string)$_GET['mode']) === 'OR' ? 'OR' : 'AND',
+            'keyword' => isset($request['keyword']) ? sanitize_text_field(wp_unslash((string)$request['keyword'])) : '',
+            'mode' => isset($request['mode']) && strtoupper((string)$request['mode']) === 'OR' ? 'OR' : 'AND',
             'filters' => $filters,
         ];
+    }
+
+    /** @return array<int,string> */
+    private function request_remedies(): array
+    {
+        $request = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' ? $_POST : $_GET;
+        return isset($request['remedies'])
+            ? array_values(array_filter(array_map('sanitize_text_field', (array)wp_unslash($request['remedies']))))
+            : [];
+    }
+
+    private function request_scalar(string $key): ?string
+    {
+        $request = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' ? $_POST : $_GET;
+        if (!isset($request[$key])) {
+            return null;
+        }
+        $value = sanitize_text_field(wp_unslash((string)$request[$key]));
+        return $value !== '' ? $value : null;
+    }
+
+    private function has_research_query(): bool
+    {
+        $query = $this->request_query();
+        return $query['keyword'] !== '' || $query['filters'] !== [];
     }
 
     public function route(): string

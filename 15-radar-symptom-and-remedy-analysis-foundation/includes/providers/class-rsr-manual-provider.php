@@ -51,6 +51,9 @@ final class RSR_Manual_Provider implements RSR_Trend_Provider
         }
 
         $normalized = [];
+        if (count($rows) > RSR_Hardening::MAX_MANUAL_ROWS || RSR_Hardening::encoded_size($rows) > RSR_Hardening::MAX_MANUAL_BODY_BYTES) {
+            throw new InvalidArgumentException('Manual trend rows exceed the governed input limit.');
+        }
         foreach ($rows as $row) {
             if (!is_array($row)) {
                 continue;
@@ -62,16 +65,16 @@ final class RSR_Manual_Provider implements RSR_Trend_Provider
             $normalized[] = [
                 'topic_key' => self::topic_key($topic),
                 'topic_label' => $topic,
-                'geography' => sanitize_key((string)($row['geography'] ?? $context['geography'] ?? 'global')) ?: 'global',
-                'volume' => max(0.0, (float)($row['volume'] ?? 0)),
-                'baseline' => max(0.0, (float)($row['baseline'] ?? 0)),
-                'coverage' => max(0.0, min(1.0, (float)($row['coverage'] ?? 1.0))),
-                'freshness' => max(0.0, min(1.0, (float)($row['freshness'] ?? 1.0))),
-                'source_reference' => sanitize_text_field((string)($row['source_reference'] ?? $source['dataset'] ?? 'manual')),
+                'geography' => RSR_Hardening::normalize_geography((string)($row['geography'] ?? $context['geography'] ?? 'global')),
+                'volume' => RSR_Hardening::finite_float($row['volume'] ?? 0, 0.0, RSR_Hardening::MAX_ABSOLUTE_VOLUME, 0.0),
+                'baseline' => RSR_Hardening::finite_float($row['baseline'] ?? 0, 0.0, RSR_Hardening::MAX_ABSOLUTE_VOLUME, 0.0),
+                'coverage' => RSR_Hardening::finite_float($row['coverage'] ?? 1.0, 0.0, 1.0, 1.0),
+                'freshness' => RSR_Hardening::finite_float($row['freshness'] ?? 1.0, 0.0, 1.0, 1.0),
+                'source_reference' => substr(sanitize_text_field((string)($row['source_reference'] ?? $source['dataset'] ?? 'manual')), 0, RSR_Hardening::MAX_SOURCE_REFERENCE_LENGTH),
                 'alias_key' => sanitize_title((string)($row['alias_key'] ?? '')),
-                'spam_probability' => max(0.0, min(1.0, (float)($row['spam_probability'] ?? 0.0))),
-                'bot_probability' => max(0.0, min(1.0, (float)($row['bot_probability'] ?? 0.0))),
-                'repost_factor' => max(1.0, (float)($row['repost_factor'] ?? 1.0)),
+                'spam_probability' => RSR_Hardening::finite_float($row['spam_probability'] ?? 0.0, 0.0, 1.0, 0.0),
+                'bot_probability' => RSR_Hardening::finite_float($row['bot_probability'] ?? 0.0, 0.0, 1.0, 0.0),
+                'repost_factor' => RSR_Hardening::finite_float($row['repost_factor'] ?? 1.0, 1.0, 1000000.0, 1.0),
             ];
         }
 

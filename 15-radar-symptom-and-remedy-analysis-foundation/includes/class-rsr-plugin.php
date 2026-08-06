@@ -147,6 +147,7 @@ final class RSR_Plugin
             'events_published' => [
                 'RadarTrendReportPublished.v1',
                 'RadarTrendReportCorrected.v1',
+                'RadarTrendReportRetracted.v1',
                 'RadarSourceDegraded.v1',
             ],
             'events_consumed' => [

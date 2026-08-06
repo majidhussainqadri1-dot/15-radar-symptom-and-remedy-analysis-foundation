@@ -23,6 +23,8 @@ final class RSR_DB
             'corrections' => $prefix . 'corrections',
             'jobs' => $prefix . 'jobs',
             'outbox' => $prefix . 'outbox',
+            'inbox' => $prefix . 'inbox',
+            'rate_limits' => $prefix . 'rate_limits',
             'audit' => $prefix . 'audit',
         ];
     }
@@ -197,6 +199,8 @@ final class RSR_DB
             action varchar(32) NOT NULL,
             reason text NOT NULL,
             public_notice text NOT NULL,
+            before_hash char(64) NULL,
+            after_hash char(64) NULL,
             actor_id bigint(20) unsigned NOT NULL DEFAULT 0,
             created_at datetime NOT NULL,
             PRIMARY KEY  (id),
@@ -245,6 +249,33 @@ final class RSR_DB
             KEY delivery_queue (status,available_at)
         ) {$charset};";
 
+
+        $sql[] = "CREATE TABLE {$t['inbox']} (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            event_id varchar(191) NOT NULL,
+            event_name varchar(191) NOT NULL,
+            payload_hash char(64) NOT NULL,
+            status varchar(32) NOT NULL DEFAULT 'processing',
+            attempts int(10) unsigned NOT NULL DEFAULT 1,
+            lease_expires_at datetime NOT NULL,
+            processed_at datetime NULL,
+            last_error_code varchar(100) NULL,
+            created_at datetime NOT NULL,
+            updated_at datetime NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY event_id (event_id),
+            KEY inbox_lease (status,lease_expires_at)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$t['rate_limits']} (
+            bucket_key char(64) NOT NULL,
+            counter int(10) unsigned NOT NULL DEFAULT 0,
+            window_expires_at datetime NOT NULL,
+            updated_at datetime NOT NULL,
+            PRIMARY KEY  (bucket_key),
+            KEY expiry (window_expires_at)
+        ) {$charset};";
+
         $sql[] = "CREATE TABLE {$t['audit']} (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             trace_id varchar(64) NOT NULL,
@@ -257,6 +288,7 @@ final class RSR_DB
             reason_code varchar(100) NULL,
             metadata_json longtext NULL,
             ip_hash char(64) NULL,
+            entry_hash char(64) NULL,
             created_at datetime NOT NULL,
             PRIMARY KEY  (id),
             KEY trace_id (trace_id),
@@ -268,16 +300,47 @@ final class RSR_DB
             dbDelta($statement);
         }
 
-        update_option('rsr_schema_version', RSR_SCHEMA_VERSION, false);
+        $missing = self::missing_tables();
+        if ($missing !== []) {
+            throw new RuntimeException('File 15 schema installation incomplete: ' . implode(',', $missing));
+        }
         self::seed_dimensions();
+        update_option('rsr_schema_version', RSR_SCHEMA_VERSION, false);
     }
 
     public static function maybe_upgrade(): void
     {
         $installed = (string)get_option('rsr_schema_version', '0');
-        if (version_compare($installed, RSR_SCHEMA_VERSION, '<')) {
-            self::install();
+        if (!version_compare($installed, RSR_SCHEMA_VERSION, '<')) {
+            return;
         }
+        $lock = 'rsr_schema_upgrade_lock';
+        $existing_lock = (string)get_option($lock, '');
+        if ($existing_lock !== '' && strtotime($existing_lock) !== false && strtotime($existing_lock) < time() - 15 * MINUTE_IN_SECONDS) {
+            delete_option($lock);
+        }
+        if (!add_option($lock, gmdate('c'), '', false)) {
+            return;
+        }
+        try {
+            self::install();
+        } finally {
+            delete_option($lock);
+        }
+    }
+
+    /** @return array<int, string> */
+    public static function missing_tables(): array
+    {
+        global $wpdb;
+        $missing = [];
+        foreach (self::tables() as $key => $table) {
+            $found = (string)$wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
+            if ($found !== $table) {
+                $missing[] = $key;
+            }
+        }
+        return $missing;
     }
 
     public static function seed_dimensions(): void
@@ -329,22 +392,39 @@ final class RSR_DB
         global $wpdb;
         $trace_id = (string)($context['trace_id'] ?? RSR_Observability::trace_id());
         unset($context['trace_id']);
-        $wpdb->insert(
-            self::table('audit'),
-            [
-                'trace_id' => $trace_id,
-                'actor_id' => get_current_user_id(),
-                'action' => sanitize_key($action),
-                'object_type' => sanitize_key($object_type),
-                'object_id' => sanitize_text_field($object_id),
-                'purpose' => sanitize_text_field($purpose),
-                'result' => sanitize_key($result),
-                'reason_code' => $reason_code ? sanitize_key($reason_code) : null,
-                'metadata_json' => $context !== [] ? wp_json_encode(RSR_Observability::redact($context)) : null,
-                'ip_hash' => RSR_Observability::request_ip_hash(),
-                'created_at' => current_time('mysql', true),
-            ]
-        );
+        $created_at = current_time('mysql', true);
+        $row = [
+            'trace_id' => $trace_id,
+            'actor_id' => (string)get_current_user_id(),
+            'action' => sanitize_key($action),
+            'object_type' => sanitize_key($object_type),
+            'object_id' => sanitize_text_field($object_id),
+            'purpose' => sanitize_text_field($purpose),
+            'result' => sanitize_key($result),
+            'reason_code' => $reason_code ? sanitize_key($reason_code) : null,
+            'metadata_json' => $context !== [] ? wp_json_encode(RSR_Observability::redact($context)) : null,
+            'ip_hash' => RSR_Observability::request_ip_hash(),
+            'created_at' => $created_at,
+        ];
+        $material = RSR_Domain::canonical_json($row);
+        $salt = function_exists('wp_salt') ? (string)wp_salt('auth') : '';
+        $row['entry_hash'] = $salt !== '' ? hash_hmac('sha256', $material, $salt) : hash('sha256', $material);
+        if (!$wpdb->insert(self::table('audit'), $row)) {
+            RSR_Observability::log('error', 'audit_insert_failed', [
+                'action' => $row['action'],
+                'object_type' => $row['object_type'],
+            ]);
+        }
+    }
+
+    public static function verify_audit_row(array $row): bool
+    {
+        $recorded = (string)($row['entry_hash'] ?? '');
+        unset($row['id'], $row['entry_hash']);
+        $material = RSR_Domain::canonical_json($row);
+        $salt = function_exists('wp_salt') ? (string)wp_salt('auth') : '';
+        $expected = $salt !== '' ? hash_hmac('sha256', $material, $salt) : hash('sha256', $material);
+        return $recorded !== '' && hash_equals($expected, $recorded);
     }
 
     /** @return array<string, int> */
