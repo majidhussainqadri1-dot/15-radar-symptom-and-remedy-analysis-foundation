@@ -1,6 +1,8 @@
 name: Materialize File 15 Source
 
-# Archive checksum repair verified before this retry.
+# The source archive is checksum-verified. The quality workflow is added by the
+# authenticated repository integration after this branch is created because the
+# ephemeral Actions token cannot modify workflow files.
 on:
   workflow_dispatch:
   push:
@@ -28,6 +30,7 @@ jobs:
           tar -xJf /tmp/file15-source.tar.xz -C .
           rm -rf .bootstrap
           rm -f .github/workflows/materialize-file15.yml
+          rm -f .github/workflows/quality.yml
       - name: Create source pull request
         uses: peter-evans/create-pull-request@v7
         with:
