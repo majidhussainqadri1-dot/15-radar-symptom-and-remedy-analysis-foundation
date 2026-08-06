@@ -14,6 +14,7 @@ final class RSR_Capabilities
     public const MANAGE_SOURCES = 'rsr_manage_sources';
     public const RUN_INGESTION = 'rsr_run_ingestion';
     public const REVIEW_REPORTS = 'rsr_review_reports';
+    public const APPROVE_REPORTS = 'rsr_approve_reports';
     public const PUBLISH_REPORTS = 'rsr_publish_reports';
     public const CORRECT_REPORTS = 'rsr_correct_reports';
     public const VIEW_DIAGNOSTICS = 'rsr_view_diagnostics';
@@ -29,6 +30,7 @@ final class RSR_Capabilities
             self::MANAGE_SOURCES,
             self::RUN_INGESTION,
             self::REVIEW_REPORTS,
+            self::APPROVE_REPORTS,
             self::PUBLISH_REPORTS,
             self::CORRECT_REPORTS,
             self::VIEW_DIAGNOSTICS,

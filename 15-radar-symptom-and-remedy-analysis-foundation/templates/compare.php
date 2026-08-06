@@ -7,7 +7,7 @@ get_header();
     <header class="rsr-hero"><div><p class="rsr-eyebrow"><?php esc_html_e('Maximum three remedies', RSR_TEXT_DOMAIN); ?></p><h1><?php esc_html_e('Source-linked Remedy Comparison', RSR_TEXT_DOMAIN); ?></h1><p><?php esc_html_e('Compare reviewed similarities and differences without turning a research view into a prescription.', RSR_TEXT_DOMAIN); ?></p></div></header>
     <aside class="rsr-safety" role="note"><strong><?php esc_html_e('Boundary:', RSR_TEXT_DOMAIN); ?></strong> <?php echo esc_html((string)$view['safety']['message']); ?></aside>
     <section class="rsr-panel">
-        <form method="get" action="<?php echo esc_url($view['urls']['compare']); ?>" class="rsr-inline-form" data-rsr-manual-compare autocomplete="off">
+        <form method="post" action="<?php echo esc_url($view['urls']['compare']); ?>" class="rsr-inline-form" data-rsr-manual-compare autocomplete="off">
             <?php for ($i = 0; $i < 3; $i++) : ?>
                 <div class="rsr-field"><label for="remedy-<?php echo esc_attr((string)$i); ?>"><?php printf(esc_html__('Remedy reference %d', RSR_TEXT_DOMAIN), $i + 1); ?></label><input id="remedy-<?php echo esc_attr((string)$i); ?>" name="remedies[]" value="<?php echo esc_attr((string)($view['selected_ids'][$i] ?? '')); ?>" maxlength="191"></div>
             <?php endfor; ?>

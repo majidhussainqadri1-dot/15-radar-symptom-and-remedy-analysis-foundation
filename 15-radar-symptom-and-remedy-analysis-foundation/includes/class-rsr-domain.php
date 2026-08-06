@@ -24,7 +24,7 @@ final class RSR_Domain
     public const METHOD_VERSION = 'rsr-trend-score-v1';
 
     /** @return array<int, string> */
-    public static function allowed_source_licenses(): array
+    public static function writable_source_licenses(): array
     {
         return [
             'public-domain',
@@ -34,12 +34,18 @@ final class RSR_Domain
             'odc-by-1.0',
             'proprietary-authorized',
             'internal-reviewed-aggregate',
-            // Legacy values remain readable for controlled migration only.
+        ];
+    }
+
+    /** @return array<int, string> */
+    public static function allowed_source_licenses(): array
+    {
+        return array_values(array_unique(array_merge(self::writable_source_licenses(), [
             'permission',
             'cc-by',
             'cc-by-sa',
             'proprietary-licensed',
-        ];
+        ])));
     }
 
     /** @return array<string, array<string, mixed>> */
@@ -180,11 +186,17 @@ final class RSR_Domain
             }
 
             if ($normalized !== []) {
-                $filters[$dimension] = $normalized;
-                $total += count($normalized);
+                $existing = $filters[$dimension] ?? [];
+                $merged = array_values(array_unique(array_merge($existing, $normalized)));
+                if (count($merged) > self::MAX_FILTERS_PER_DIMENSION) {
+                    $errors[] = 'too_many_values:' . $dimension;
+                    $merged = array_slice($merged, 0, self::MAX_FILTERS_PER_DIMENSION);
+                }
+                $filters[$dimension] = $merged;
             }
         }
 
+        $total = array_sum(array_map('count', $filters));
         if ($total > self::MAX_TOTAL_FILTER_VALUES) {
             $errors[] = 'too_many_total_filters';
         }
@@ -214,18 +226,19 @@ final class RSR_Domain
     public static function validate_comparison_ids(array $ids): array
     {
         $normalized = [];
+        $errors = [];
         foreach ($ids as $id) {
             $id = trim((string)$id);
             if ($id === '') {
                 continue;
             }
             if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,190}$/', $id)) {
+                $errors[] = 'invalid_remedy_id';
                 continue;
             }
             $normalized[] = $id;
         }
         $normalized = array_values(array_unique($normalized));
-        $errors = [];
 
         if ($normalized === []) {
             $errors[] = 'no_remedies_selected';
@@ -264,12 +277,12 @@ final class RSR_Domain
      */
     public static function score_trend(array $metrics): array
     {
-        $volume = max(0.0, (float)($metrics['volume'] ?? 0.0));
-        $baseline = max(0.0, (float)($metrics['baseline'] ?? 0.0));
-        $source_quality = self::clamp((float)($metrics['source_quality'] ?? 0.5), 0.0, 1.0);
-        $coverage = self::clamp((float)($metrics['coverage'] ?? 0.5), 0.0, 1.0);
-        $freshness = self::clamp((float)($metrics['freshness'] ?? 1.0), 0.0, 1.0);
-        $minimum_volume = max(1.0, (float)($metrics['minimum_volume'] ?? 5.0));
+        $volume = RSR_Hardening::finite_float($metrics['volume'] ?? 0.0, 0.0, RSR_Hardening::MAX_ABSOLUTE_VOLUME, 0.0) ?? 0.0;
+        $baseline = RSR_Hardening::finite_float($metrics['baseline'] ?? 0.0, 0.0, RSR_Hardening::MAX_ABSOLUTE_VOLUME, 0.0) ?? 0.0;
+        $source_quality = RSR_Hardening::finite_float($metrics['source_quality'] ?? 0.5, 0.0, 1.0, 0.5) ?? 0.5;
+        $coverage = RSR_Hardening::finite_float($metrics['coverage'] ?? 0.5, 0.0, 1.0, 0.5) ?? 0.5;
+        $freshness = RSR_Hardening::finite_float($metrics['freshness'] ?? 1.0, 0.0, 1.0, 1.0) ?? 1.0;
+        $minimum_volume = RSR_Hardening::finite_float($metrics['minimum_volume'] ?? 5.0, 1.0, RSR_Hardening::MAX_ABSOLUTE_VOLUME, 5.0) ?? 5.0;
 
         $change_ratio = $baseline > 0.0
             ? ($volume - $baseline) / max($baseline, 1.0)

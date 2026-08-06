@@ -25,7 +25,7 @@ get_header();
 
     <section class="rsr-panel" aria-labelledby="rsr-search-title">
         <h2 id="rsr-search-title"><?php esc_html_e('Build a structured query', RSR_TEXT_DOMAIN); ?></h2>
-        <form method="get" action="<?php echo esc_url($view['urls']['radar']); ?>" class="rsr-search-form" data-rsr-search-form autocomplete="off">
+        <form method="post" action="<?php echo esc_url($view['urls']['radar']); ?>" class="rsr-search-form" data-rsr-search-form autocomplete="off">
             <div class="rsr-field rsr-field-wide">
                 <label for="rsr-keyword"><?php esc_html_e('Keyword', RSR_TEXT_DOMAIN); ?></label>
                 <input id="rsr-keyword" name="keyword" type="search" maxlength="240" value="<?php echo esc_attr((string)$view['query']['keyword']); ?>" placeholder="<?php esc_attr_e('e.g., burning, morning, cold air', RSR_TEXT_DOMAIN); ?>">
@@ -93,7 +93,7 @@ get_header();
                 <?php else : ?>
                     <p class="rsr-query-explanation"><?php echo esc_html((string)$view['results']['explanation']); ?></p>
                     <div class="rsr-notice"><strong><?php esc_html_e('Why this order:', RSR_TEXT_DOMAIN); ?></strong> <?php echo esc_html((string)($view['results']['ranking']['notice'] ?? '')); ?></div>
-                    <form method="get" action="<?php echo esc_url($view['urls']['compare']); ?>" data-rsr-compare-form>
+                    <form method="post" action="<?php echo esc_url($view['urls']['compare']); ?>" data-rsr-compare-form>
                         <div class="rsr-card-grid">
                             <?php foreach ((array)$view['results']['results'] as $result) :
                                 $remedy = (array)($result['remedy'] ?? []);

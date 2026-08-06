@@ -28,17 +28,19 @@ jobs:
           node-version: '22'
       - name: Build and test
         run: bash scripts/build.sh
-      - name: Verify canonical plugin version
+      - name: Verify canonical release identity
         run: |
-          grep -Fq 'Version: 1.1.0' 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
-          grep -Fq "define('RSR_VERSION', '1.1.0')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
-          grep -Fq 'Stable tag: 1.1.0' 15-radar-symptom-and-remedy-analysis-foundation/readme.txt
+          grep -Fq 'Version: 1.2.0' 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq "define('RSR_VERSION', '1.2.0')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq "define('RSR_SCHEMA_VERSION', '1.2.0')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq 'Stable tag: 1.2.0' 15-radar-symptom-and-remedy-analysis-foundation/readme.txt
       - name: Upload release evidence
         if: matrix.php == '8.3'
         uses: actions/upload-artifact@v4
         with:
-          name: file-15-release-evidence
+          name: file-15-v1.2.0-release-evidence
           path: |
             dist/
             docs/RELEASE-EVIDENCE.md
+            docs/FORTY-ROUND-AUDIT-2026-08-06.md
           if-no-files-found: error

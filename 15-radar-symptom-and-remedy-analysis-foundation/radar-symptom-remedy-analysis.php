@@ -3,7 +3,7 @@
  * Plugin Name: Radar, Symptom/Remedy Research and Trend Intelligence
  * Plugin URI: https://www.sabrihomeopathy.com/
  * Description: File 15 of the Sabri Social Homeopathy Platform: source-linked Radar research, private verified-doctor studies, and editorially governed trend intelligence.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Requires at least: 6.5
  * Requires PHP: 8.1
  * Author: Dr. Allamah Majid Hussain Sabri
@@ -19,8 +19,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RSR_VERSION', '1.1.0');
-define('RSR_SCHEMA_VERSION', '1.0.0');
+define('RSR_VERSION', '1.2.0');
+define('RSR_SCHEMA_VERSION', '1.2.0');
 define('RSR_FILE', __FILE__);
 define('RSR_DIR', plugin_dir_path(__FILE__));
 define('RSR_URL', plugin_dir_url(__FILE__));
@@ -32,6 +32,7 @@ $rsr_files = [
     'includes/class-rsr-pii-scanner.php',
     'includes/class-rsr-crypto.php',
     'includes/class-rsr-db.php',
+    'includes/class-rsr-hardening.php',
     'includes/class-rsr-capabilities.php',
     'includes/class-rsr-observability.php',
     'includes/class-rsr-events.php',
