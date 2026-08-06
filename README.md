@@ -1,17 +1,52 @@
-# Radar Symptom and Remedy Analysis Foundation
+# File 15 — Radar, Symptom/Remedy Research and Trend Intelligence
 
-This repository governs **File 15** of the **Sabri Social Homeopathy Platform**.
+Production-oriented WordPress source for **File 15** of the **Sabri Social Homeopathy Platform**.
 
-The original WordPress plugin source will be preserved and reviewed through a dedicated baseline-import branch and pull request before it is accepted into `main`.
+## Canonical boundary
 
-## Module identity
+File 15 owns:
 
-- **File:** 15
-- **Plugin:** Radar Symptom and Remedy Analysis Foundation
-- **Original version:** 0.1.0
-- **Platform:** Sabri Social Homeopathy Platform
-- **Website:** https://www.sabrihomeopathy.com/
+- the governed Radar rubric/search schema;
+- source-linked educational remedy mappings and one-to-three remedy comparison;
+- verified-doctor-only, non-patient private Saved Studies;
+- trend-source adapters and governance;
+- daily, weekly, monthly, and yearly aggregate ingestion;
+- normalization, deduplication, scoring, confidence, freshness, and reproducibility;
+- report editorial approval, publication, correction, retraction, and public provenance.
 
-## Governance
+It does **not** own diagnosis, prescription, potency, dosage, emergency care, clinical records, File 06 encyclopedia truth, File 00 identity truth, general search, or general feed publishing.
 
-No release is considered complete merely because source code or a ZIP package exists. Acceptance requires integrity verification, review, testing, staging validation, and an approved merge.
+## Repository layout
+
+```text
+15-radar-symptom-and-remedy-analysis-foundation/  WordPress plugin
+.github/workflows/quality.yml                     CI quality gates
+docs/                                             architecture, contracts, security, QA, operations
+tests/                                            executable domain and static regression tests
+scripts/build.sh                                  deterministic release builder
+```
+
+## Release identity
+
+- Plugin version: `1.0.0`
+- Schema version: `1.0.0`
+- Text domain: `radar-symptom-remedy-analysis`
+- PHP prefix: `RSR_`
+- Target project baseline: WordPress `7.0.1`, PHP `8.3`
+- Minimum declared runtime: WordPress `6.5`, PHP `8.1`
+
+## Local verification
+
+```bash
+bash scripts/build.sh
+```
+
+The build command performs PHP lint, JavaScript syntax checks, executable domain tests, static plan/regression checks, manifest/checksum generation, and deterministic ZIP creation.
+
+## Completion semantics
+
+This repository can prove **source implementation, package integrity, and automated QA**. It cannot by itself prove Hostinger/WordPress staging acceptance, production deployment, real provider credentials, operational staffing, or live service levels. Those remain explicit gates in `docs/STAGING-ACCEPTANCE.md`.
+
+## Safety
+
+Radar is an educational research tool. It does not diagnose disease, prescribe a remedy, select potency or dosage, replace a qualified clinician, or provide emergency care. Private studies must never contain patient-identifying information.

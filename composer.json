@@ -1,0 +1,13 @@
+{
+  "name": "sabri-platform/file-15-radar-trends",
+  "description": "File 15 Radar, symptom/remedy research and trend intelligence WordPress plugin.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.1"
+  },
+  "scripts": {
+    "test": "php tests/run.php && php tests/static-regression.php",
+    "build": "bash scripts/build.sh"
+  }
+}
