@@ -1,0 +1,17 @@
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+vendor/
+node_modules/
+coverage/
+*.log
+.env
+.env.*
+wp-config.php
+wp-content/uploads/
+dist/*.zip
+dist/*.sha256
+dist/MANIFEST.sha256
