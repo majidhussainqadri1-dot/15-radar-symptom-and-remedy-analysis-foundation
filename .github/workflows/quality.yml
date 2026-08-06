@@ -2,7 +2,7 @@ name: File 15 Quality Gates
 
 on:
   push:
-    branches: [main, 'feat/**', 'fix/**']
+    branches: [main, 'feat/**', 'fix/**', 'audit/**']
   pull_request:
     branches: [main]
 
@@ -30,8 +30,9 @@ jobs:
         run: bash scripts/build.sh
       - name: Verify canonical plugin version
         run: |
-          grep -Fq 'Version: 1.0.0' 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
-          grep -Fq "define('RSR_VERSION', '1.0.0')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq 'Version: 1.1.0' 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq "define('RSR_VERSION', '1.1.0')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq 'Stable tag: 1.1.0' 15-radar-symptom-and-remedy-analysis-foundation/readme.txt
       - name: Upload release evidence
         if: matrix.php == '8.3'
         uses: actions/upload-artifact@v4

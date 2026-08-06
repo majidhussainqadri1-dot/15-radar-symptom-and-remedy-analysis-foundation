@@ -41,10 +41,10 @@ $manageTemplate = $read($plugin . '/templates/manage.php');
 $traceability = $read($root . '/docs/REQUIREMENTS-TRACEABILITY.md');
 
 $assert(is_dir($plugin), 'Canonical plugin folder is missing.');
-$assert(str_contains($main, 'Version: 1.0.0') && str_contains($main, "define('RSR_VERSION', '1.0.0')"), 'Plugin/header version must be 1.0.0.');
+$assert(str_contains($main, 'Version: 1.1.0') && str_contains($main, "define('RSR_VERSION', '1.1.0')"), 'Plugin/header version must be 1.1.0.');
 $assert(str_contains($main, 'Text Domain: radar-symptom-remedy-analysis'), 'Canonical text domain is missing.');
 $assert(!str_contains($main, 'SRF_'), 'Historical SRF symbols must not remain in canonical main plugin file.');
-$assert(count($phpFiles) >= 25, 'Canonical implementation unexpectedly contains too few PHP files.');
+$assert(count($phpFiles) >= 26, 'Canonical implementation unexpectedly contains too few PHP files.');
 $assert(count($jsFiles) === 2, 'Expected public and operations JavaScript bundles.');
 
 foreach (['schema_values','mappings','studies','sources','observations','reports','corrections','jobs','outbox','audit'] as $table) {

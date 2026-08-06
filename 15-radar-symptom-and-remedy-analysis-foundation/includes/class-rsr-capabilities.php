@@ -65,6 +65,10 @@ final class RSR_Capabilities
             return $caps;
         }
 
+        if (self::is_access_restricted($user_id)) {
+            return ['do_not_allow'];
+        }
+
         if (self::is_founder($user_id)) {
             return ['exist'];
         }
@@ -79,7 +83,7 @@ final class RSR_Capabilities
     public static function is_verified_doctor(?int $user_id = null): bool
     {
         $user_id = $user_id ?? get_current_user_id();
-        if ($user_id <= 0) {
+        if ($user_id <= 0 || self::is_access_restricted($user_id)) {
             return false;
         }
 
@@ -95,22 +99,44 @@ final class RSR_Capabilities
 
         // Compatibility bridge only; can be disabled after File 00 adapter is live.
         $legacy = (bool)apply_filters('rsr_legacy_verified_doctor', false, $user_id);
-        return $legacy;
+        return $legacy && !self::is_access_restricted($user_id);
     }
 
     public static function is_founder(?int $user_id = null): bool
     {
         $user_id = $user_id ?? get_current_user_id();
-        if ($user_id <= 0) {
+        if ($user_id <= 0 || self::is_access_restricted($user_id)) {
             return false;
         }
         return (bool)apply_filters('rsr_file00_claim', false, 'institution.founder', $user_id, '1');
     }
 
-    public static function can(string $capability, ?int $user_id = null): bool
+    /**
+     * Fail closed for explicit current suspension/revocation assertions.
+     * Absence of an optional assertion does not invent a negative claim; the
+     * authoritative verified/founder claim is still required separately.
+     */
+    public static function is_access_restricted(?int $user_id = null): bool
     {
         $user_id = $user_id ?? get_current_user_id();
         if ($user_id <= 0) {
+            return true;
+        }
+
+        $restricted = (bool)apply_filters('rsr_file00_access_restricted', false, $user_id, '1');
+        foreach (['account.suspended', 'doctor.suspended', 'doctor.verification_revoked', 'account.security_hold'] as $claim) {
+            if ((bool)apply_filters('rsr_file00_claim', false, $claim, $user_id, '1')) {
+                $restricted = true;
+                break;
+            }
+        }
+        return $restricted;
+    }
+
+    public static function can(string $capability, ?int $user_id = null): bool
+    {
+        $user_id = $user_id ?? get_current_user_id();
+        if ($user_id <= 0 || self::is_access_restricted($user_id)) {
             return false;
         }
         if (user_can($user_id, $capability)) {
@@ -128,6 +154,13 @@ final class RSR_Capabilities
         $user_id = $user_id ?? get_current_user_id();
         if ($user_id <= 0) {
             return new WP_Error('rsr_auth_required', __('Authentication is required.', RSR_TEXT_DOMAIN), ['status' => 401]);
+        }
+        if (self::is_access_restricted($user_id)) {
+            return new WP_Error(
+                'rsr_account_restricted',
+                __('This account is currently suspended, revoked, or under a security hold.', RSR_TEXT_DOMAIN),
+                ['status' => 403]
+            );
         }
         if (!self::is_verified_doctor($user_id) && !self::is_founder($user_id)) {
             return new WP_Error(

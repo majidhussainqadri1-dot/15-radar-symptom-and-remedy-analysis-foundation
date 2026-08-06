@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="$ROOT/15-radar-symptom-and-remedy-analysis-foundation"
 DIST="$ROOT/dist"
-VERSION="1.0.0"
+VERSION="1.1.0"
 ZIP_NAME="15-radar-symptom-and-remedy-analysis-foundation-${VERSION}.zip"
 ZIP_PATH="$DIST/$ZIP_NAME"
 
@@ -26,6 +26,8 @@ printf 'Running domain/security tests...\n'
 php "$ROOT/tests/run.php" | tee "$DIST/domain-tests.log"
 printf 'Running static requirement/regression tests...\n'
 php "$ROOT/tests/static-regression.php" | tee "$DIST/static-regression.log"
+printf 'Running four-plan compliance regression tests...\n'
+php "$ROOT/tests/four-plan-compliance.php" | tee "$DIST/four-plan-compliance.log"
 
 printf 'Generating source manifest...\n'
 (
@@ -41,8 +43,7 @@ import sys
 import zipfile
 
 root, plugin_dir, zip_path = sys.argv[1:]
-base = os.path.basename(plugin_dir)
-fixed_time = (2026, 8, 6, 12, 0, 0)
+fixed_time = (2026, 8, 6, 17, 30, 0)
 paths = []
 for current, dirs, files in os.walk(plugin_dir):
     dirs.sort()
@@ -70,6 +71,7 @@ required = {
     '15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php',
     '15-radar-symptom-and-remedy-analysis-foundation/readme.txt',
     '15-radar-symptom-and-remedy-analysis-foundation/uninstall.php',
+    '15-radar-symptom-and-remedy-analysis-foundation/includes/class-rsr-four-plan-compliance.php',
 }
 with zipfile.ZipFile(path) as z:
     names = z.namelist()
@@ -91,7 +93,7 @@ ZIP_HASH="$(cut -d' ' -f1 "$DIST/$ZIP_NAME.sha256")"
 BUILD_UTC="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 cat > "$ROOT/docs/RELEASE-EVIDENCE.md" <<EOF
-# Release Evidence — 1.0.0
+# Release Evidence — 1.1.0
 
 Generated: \`$BUILD_UTC\`
 
@@ -101,6 +103,7 @@ Generated: \`$BUILD_UTC\`
 - JavaScript syntax: PASS
 - Domain/security tests: PASS
 - Static requirement/regression tests: PASS
+- Four-plan compliance regression tests: PASS
 - ZIP path/integrity validation: PASS
 - Plugin source files: \`$SOURCE_COUNT\`
 - Plugin source bytes: \`$SOURCE_BYTES\`
@@ -108,9 +111,13 @@ Generated: \`$BUILD_UTC\`
 - Package SHA-256: \`$ZIP_HASH\`
 - Source manifest: \`dist/SOURCE-MANIFEST.sha256\`
 
+## Four-plan corrective scope
+
+The release hardens File 15 against the Definitive Master Plan v3.0, the recovered directive register v2.1, the Continuous Value/Top-20 Superset plan, and File 15's dedicated master plan. Corrections include fail-closed current claim checks, health-query no-store/no-referrer handling, explainable non-clinical result ordering, zero-result recovery without fabricated remedies, red-flag escalation, current File 06 remedy validation for Saved Studies, encryption failure safety, File 20 context-control consumption, canonical schema keys, localized client states, and explicit cross-file ownership metadata.
+
 ## Covered implementation
 
-All functional requirements F15-FR-001 through F15-FR-018 and source-level controls for F15-NFR-001 through F15-NFR-010 are represented in the canonical source and traceability matrix.
+All functional requirements F15-FR-001 through F15-FR-018 and source-level controls for F15-NFR-001 through F15-NFR-010 are represented in the canonical source and traceability matrix. Version 1.1.0 adds regression evidence for the four-plan audit findings.
 
 ## Explicitly separate external gates
 

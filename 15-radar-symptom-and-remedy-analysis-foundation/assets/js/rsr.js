@@ -5,8 +5,17 @@
     const qs = (selector, root = document) => root.querySelector(selector);
     const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
+    const sameOriginUrl = (candidate, fallback = '/') => {
+        try {
+            const url = new URL(candidate || fallback, window.location.origin);
+            return url.origin === window.location.origin ? url.href : new URL(fallback, window.location.origin).href;
+        } catch (error) {
+            return new URL(fallback, window.location.origin).href;
+        }
+    };
+
     const safeBack = (button) => {
-        const fallback = button.dataset.fallback || '/';
+        const fallback = sameOriginUrl(button.dataset.fallback || '/', '/');
         try {
             if (document.referrer) {
                 const referrer = new URL(document.referrer);
@@ -49,6 +58,8 @@
         if (config.traceId) headers.set('X-RSR-Trace-Id', config.traceId);
         const response = await fetch(`${config.restRoot || '/wp-json/rsr/v1/'}${path}`, {
             credentials: 'same-origin',
+            cache: 'no-store',
+            referrerPolicy: 'no-referrer',
             ...options,
             headers,
         });
@@ -96,9 +107,10 @@
 
         const formPayload = () => {
             const query = parseJson(form.elements.query_json.value, null);
-            if (!query || typeof query !== 'object') throw new Error('Structured query JSON is invalid.');
-            const keyword = String(form.elements.keyword.value || '').trim();
-            if (keyword) query.keyword = keyword;
+            if (!query || typeof query !== 'object') {
+                throw new Error(config.strings?.invalidStructuredQuery || 'Structured query JSON is invalid.');
+            }
+            query.keyword = String(form.elements.keyword.value || '').trim();
             return {
                 title: form.elements.title.value,
                 version: Number(form.elements.version.value || 0),
@@ -148,9 +160,12 @@
                 if (!window.confirm(config.strings?.confirmDelete || 'Delete this study?')) return;
                 setLive(status, config.strings?.loading || 'Loading…');
                 try {
-                    await apiFetch(`studies/${encodeURIComponent(study.public_id)}?version=${encodeURIComponent(study.version)}`, { method: 'DELETE' });
+                    await apiFetch(`studies/${encodeURIComponent(study.public_id)}?version=${encodeURIComponent(study.version)}`, {
+                        method: 'DELETE',
+                        headers: { 'If-Match': `"${study.version}"` },
+                    });
                     card.remove();
-                    setLive(status, 'Deleted.');
+                    setLive(status, config.strings?.deleted || 'Deleted.');
                 } catch (error) {
                     setLive(status, error.message, 'error');
                 }
@@ -170,8 +185,8 @@
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
-                URL.revokeObjectURL(url);
-                setLive(status, 'Export prepared.');
+                window.setTimeout(() => URL.revokeObjectURL(url), 0);
+                setLive(status, config.strings?.exportPrepared || 'Export prepared.');
             } catch (error) {
                 setLive(status, error.message, 'error');
             }

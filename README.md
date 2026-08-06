@@ -14,7 +14,18 @@ File 15 owns:
 - normalization, deduplication, scoring, confidence, freshness, and reproducibility;
 - report editorial approval, publication, correction, retraction, and public provenance.
 
-It does **not** own diagnosis, prescription, potency, dosage, emergency care, clinical records, File 06 encyclopedia truth, File 00 identity truth, general search, or general feed publishing.
+It does **not** own diagnosis, prescription, potency, dosage, emergency care, clinical records, File 06 encyclopedia truth, File 00 identity truth, File 20 shell truth, File 25 visual-system truth, File 26 federated search truth, or general feed publishing.
+
+## Four-plan compliance release
+
+Version `1.1.0` is the corrective release produced by four distinct review passes against:
+
+1. Definitive Integrated Master Plan v3.0;
+2. Consolidated All-Chats Recovered Directive Register v2.1;
+3. Continuous Value / Global Top-20 Feature Superset Master Plan;
+4. File 15 dedicated complete master plan v1.0.
+
+The exact findings, corrections, evidence, and residual external gates are recorded in `docs/FOUR-PLAN-AUDIT-2026-08-06.md`.
 
 ## Repository layout
 
@@ -28,7 +39,7 @@ scripts/build.sh                                  deterministic release builder
 
 ## Release identity
 
-- Plugin version: `1.0.0`
+- Plugin version: `1.1.0`
 - Schema version: `1.0.0`
 - Text domain: `radar-symptom-remedy-analysis`
 - PHP prefix: `RSR_`
@@ -41,7 +52,7 @@ scripts/build.sh                                  deterministic release builder
 bash scripts/build.sh
 ```
 
-The build command performs PHP lint, JavaScript syntax checks, executable domain tests, static plan/regression checks, manifest/checksum generation, and deterministic ZIP creation.
+The build command performs PHP lint, JavaScript syntax checks, executable domain tests, static plan/regression checks, four-plan compliance regression checks, manifest/checksum generation, and deterministic ZIP creation.
 
 ## Completion semantics
 

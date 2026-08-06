@@ -27,6 +27,7 @@ final class RSR_Plugin
         RSR_Activator::schedule();
 
         (new RSR_API($this->radar, $this->studies, $this->trends))->hooks();
+        (new RSR_Four_Plan_Compliance($this->radar))->hooks();
         (new RSR_Routes($this->radar, $this->studies, $this->trends))->hooks();
         (new RSR_Admin($this->radar, $this->studies, $this->trends))->hooks();
         (new RSR_Privacy($this->studies, $this->trends))->hooks();
@@ -116,18 +117,49 @@ final class RSR_Plugin
             'file_number' => 15,
             'slug' => 'radar-symptom-remedy-analysis',
             'version' => RSR_VERSION,
-            'routes' => ['/radar/', '/radar/compare/', '/radar/studies/', '/trends/', '/radar/manage/'],
+            'routes' => ['/radar/', '/radar/compare/', '/radar/studies/', '/trends/', '/trends/{report_id}/', '/radar/manage/'],
             'commands' => [
                 'radar.search.v1',
                 'radar.compare.v1',
                 'radar.study.create.v1',
+                'radar.study.update.v1',
+                'radar.study.delete.v1',
                 'radar.trend.ingest.v1',
                 'radar.report.transition.v1',
                 'radar.report.correct.v1',
             ],
-            'events_published' => ['RadarTrendReportPublished.v1', 'RadarTrendReportCorrected.v1', 'RadarSourceDegraded.v1'],
-            'events_consumed' => ['EncyclopediaEntryPublished.v1', 'EncyclopediaEntryCorrected.v1', 'EncyclopediaEntryRetracted.v1', 'DoctorSuspended.v1', 'ProviderQuotaChanged.v1'],
+            'read_contracts' => [
+                'sabri_file15_public_search_v1',
+                'sabri_file15_public_reports_v1',
+                'sabri_file15_health_v1',
+            ],
+            'consumers' => [
+                'file06' => 'canonical remedy/source linkage',
+                'file16' => 'public approved retrieval only',
+                'file21' => 'public trend/editorial discovery only',
+                'file26' => 'federated search, explanation and freshness',
+            ],
+            'commands_owner' => 'file15',
+            'search_projection_owner' => 'file26',
+            'shell_owner' => 'file20',
+            'visual_owner' => 'file25',
+            'assurance_owner' => 'file24',
+            'events_published' => [
+                'RadarTrendReportPublished.v1',
+                'RadarTrendReportCorrected.v1',
+                'RadarSourceDegraded.v1',
+            ],
+            'events_consumed' => [
+                'EncyclopediaEntryPublished.v1',
+                'EncyclopediaEntryCorrected.v1',
+                'EncyclopediaEntryRetracted.v1',
+                'DoctorSuspended.v1',
+                'ProviderQuotaChanged.v1',
+            ],
             'private_data_excluded_from_search' => true,
+            'private_studies_excluded_from_ai' => true,
+            'clinical_authority' => false,
+            'paid_or_donor_ranking_bias' => false,
         ]);
     }
 }

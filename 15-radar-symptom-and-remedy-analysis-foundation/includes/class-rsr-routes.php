@@ -14,6 +14,7 @@ final class RSR_Routes
 
     /** @var array<string, mixed> */
     private static array $view = [];
+    private static bool $context_controls_rendered = false;
 
     public function __construct(RSR_Radar_Service $radar, RSR_Study_Service $studies, RSR_Trend_Service $trends)
     {
@@ -105,6 +106,9 @@ final class RSR_Routes
                 'loading' => __('Loading…', RSR_TEXT_DOMAIN),
                 'error' => __('The request could not be completed.', RSR_TEXT_DOMAIN),
                 'saved' => __('Saved.', RSR_TEXT_DOMAIN),
+                'deleted' => __('Deleted.', RSR_TEXT_DOMAIN),
+                'exportPrepared' => __('Export prepared.', RSR_TEXT_DOMAIN),
+                'invalidStructuredQuery' => __('Structured query JSON is invalid.', RSR_TEXT_DOMAIN),
                 'maximumThree' => __('Choose no more than three remedies.', RSR_TEXT_DOMAIN),
                 'confirmDelete' => __('Delete this private study?', RSR_TEXT_DOMAIN),
             ],
@@ -122,8 +126,9 @@ final class RSR_Routes
         }
         nocache_headers();
         header('X-Robots-Tag: noindex, noarchive, nofollow', true);
-        header('Referrer-Policy: same-origin', true);
+        header('Referrer-Policy: no-referrer', true);
         header('X-Content-Type-Options: nosniff', true);
+        header('Permissions-Policy: camera=(), microphone=(), geolocation=()', true);
     }
 
     /** @param array<string, bool> $robots @return array<string, bool> */
@@ -221,9 +226,12 @@ final class RSR_Routes
         if ($route === 'radar') {
             $query = $this->request_query();
             $base['query'] = $query;
-            $base['results'] = ($query['keyword'] !== '' || $query['filters'] !== [])
+            $search = ($query['keyword'] !== '' || $query['filters'] !== [])
                 ? $this->radar->search($query, 30, isset($_GET['cursor']) ? sanitize_text_field(wp_unslash((string)$_GET['cursor'])) : null)
                 : null;
+            $base['results'] = is_array($search)
+                ? RSR_Four_Plan_Compliance::enhance_search_result($search, $query)
+                : $search;
         } elseif ($route === 'compare') {
             $ids = isset($_GET['remedies']) ? array_map('sanitize_text_field', (array)wp_unslash($_GET['remedies'])) : [];
             $base['selected_ids'] = array_slice($ids, 0, RSR_Domain::MAX_COMPARE_REMEDIES);
@@ -257,7 +265,7 @@ final class RSR_Routes
     {
         if ($route === 'studies') {
             if (!is_user_logged_in()) {
-                return true; // The template displays an explicit login gate.
+                return true;
             }
             return RSR_Capabilities::require_verified_doctor();
         }
@@ -320,12 +328,28 @@ final class RSR_Routes
     /** @param array<string, mixed> $args */
     public static function context_controls(array $args = []): void
     {
-        $home = home_url('/');
+        if (self::$context_controls_rendered) {
+            return;
+        }
+        self::$context_controls_rendered = true;
+
         $fallback = isset($args['fallback']) ? (string)$args['fallback'] : home_url('/radar/');
-        echo '<nav class="rsr-context-controls" aria-label="' . esc_attr__('Context navigation', RSR_TEXT_DOMAIN) . '">';
+        $fallback = wp_validate_redirect($fallback, home_url('/radar/'));
+        $args['fallback'] = $fallback;
+        $args['home'] = home_url('/');
+        $args['rtl'] = is_rtl();
+        $args['module'] = 'file15';
+
+        $owner_markup = apply_filters('sabri_file20_context_controls_markup_v1', '', $args);
+        if (is_string($owner_markup) && trim($owner_markup) !== '') {
+            echo wp_kses_post($owner_markup);
+            return;
+        }
+
+        echo '<nav class="rsr-context-controls" aria-label="' . esc_attr__('Context navigation', RSR_TEXT_DOMAIN) . '" data-rsr-file20-fallback="1">';
         $back_icon = is_rtl() ? '→' : '←';
         echo '<button type="button" class="rsr-icon-button" data-rsr-back data-fallback="' . esc_url($fallback) . '"><span aria-hidden="true">' . esc_html($back_icon) . '</span><span>' . esc_html__('Back', RSR_TEXT_DOMAIN) . '</span></button>';
-        echo '<a class="rsr-icon-button" href="' . esc_url($home) . '"><span aria-hidden="true">⌂</span><span>' . esc_html__('Home', RSR_TEXT_DOMAIN) . '</span></a>';
+        echo '<a class="rsr-icon-button" href="' . esc_url(home_url('/')) . '"><span aria-hidden="true">⌂</span><span>' . esc_html__('Home', RSR_TEXT_DOMAIN) . '</span></a>';
         do_action('rsr_context_controls', $args);
         echo '</nav>';
     }
