@@ -142,13 +142,23 @@ final class RSR_Domain
     public static function validate_radar_query(array $input): array
     {
         $errors = [];
-        $mode = strtoupper((string)($input['mode'] ?? 'AND'));
+        $mode_input = $input['mode'] ?? 'AND';
+        if (!is_string($mode_input)) {
+            $errors[] = 'invalid_mode_type';
+            $mode_input = 'AND';
+        }
+        $mode = strtoupper($mode_input);
         if (!in_array($mode, ['AND', 'OR'], true)) {
             $errors[] = 'invalid_mode';
             $mode = 'AND';
         }
 
-        $keyword = trim((string)($input['keyword'] ?? ''));
+        $keyword_input = $input['keyword'] ?? '';
+        if (!is_string($keyword_input)) {
+            $errors[] = 'invalid_keyword_type';
+            $keyword_input = '';
+        }
+        $keyword = trim($keyword_input);
         if (self::length($keyword) > self::MAX_QUERY_TEXT_LENGTH) {
             $errors[] = 'keyword_too_long';
         }
