@@ -181,6 +181,22 @@ foreach ($phpFiles as $relative => $content) {
     $assert(!preg_match('/\b(?:eval|exec|shell_exec|system|passthru)\s*\(/', $content), "Dangerous execution primitive in {$relative}.");
 }
 
+// Independent regression for the newly repaired trend-page pagination.
+$assert(
+    str_contains($trends, 'COALESCE(published_at, created_at) < %s')
+    && str_contains($trends, 'COALESCE(published_at, created_at) = %s AND id < %d')
+    && str_contains($trends, 'ORDER BY COALESCE(published_at, created_at) DESC, id DESC')
+    && str_contains($trends, 'RSR_Domain::parse_report_cursor')
+    && str_contains($trends, 'RSR_Domain::encode_report_cursor'),
+    'Trend pagination must keyset by the complete publication-time/id ordering tuple.'
+);
+$assert(
+    str_contains($domain, 'function parse_report_cursor')
+    && str_contains($domain, 'function encode_report_cursor')
+    && str_contains($domain, 'legacy_id'),
+    'Versioned composite and legacy cursor parsing must remain available.'
+);
+
 if ($failures !== []) {
     fwrite(STDERR, "FAILED {$checks} static checks\n- " . implode("\n- ", $failures) . "\n");
     exit(1);
