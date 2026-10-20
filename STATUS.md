@@ -1,4 +1,4 @@
-# File 15 Status — v1.2.0
+# File 15 Status — v1.2.1 corrective candidate
 
 | Layer | Status |
 |---|---|
@@ -6,11 +6,14 @@
 | Forty sequential review/fix rounds | Complete |
 | Rounds with defects | 32 — corrected and retested |
 | Rounds without new defects | 8 |
-| Source implementation | Complete under current corpus |
-| Automated/domain/static/four-round QA | PASS after build |
-| Deterministic package | PASS after build |
+| Source implementation | v1.2.1 corrective branch candidate; requires exact-head CI |
+| Automated/domain/static/four-round QA | Pending fresh v1.2.1 CI build |
+| Deterministic package | Pending fresh v1.2.1 CI build |
 | Hostinger staging | Pending external execution |
 | Live deployment | Not claimed |
 | Operational service | Not claimed |
 
 The repository has zero known unresolved blocker/critical source defect after the forty-round review. External integrations, real providers, browser/accessibility measurements, backup/restore and Founder acceptance remain separate gates.
+
+
+2026-10-20 follow-up: 40 focused static probes identified 3 source/test defects (legacy four-plan version assertion, omitted build gate, inconsistent report pagination). Candidate corrections are on a dedicated branch; Hostinger staging and File 06/26 integration remain unverified.
