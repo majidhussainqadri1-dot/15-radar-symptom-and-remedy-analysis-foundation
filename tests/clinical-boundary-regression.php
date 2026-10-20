@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
+if (!function_exists('esc_url_raw')) {
+    function esc_url_raw(string $url): string
+    {
+        return $url;
+    }
+}
 if (!function_exists('wp_strip_all_tags')) {
     function wp_strip_all_tags(string $text): string
     {
