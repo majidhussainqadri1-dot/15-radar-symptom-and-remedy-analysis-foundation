@@ -34,7 +34,7 @@ $radar = new RSR_Radar_Service();
 $urgent = $radar->search(['keyword' => 'chest pain', 'filters' => []]);
 $assert(is_array($urgent), 'Urgent research result must be an explicit response.');
 $assert(($urgent['results'] ?? null) === [], 'No remedy suggestions may be returned for chest pain.');
-$assert(($urgent['next_cursor'] ?? 'INVALID') === null, 'No emergency result pagination may leak.');
+$assert(array_key_exists('next_cursor', $urgent) && $urgent['next_cursor'] === null, 'No emergency result pagination may leak.');
 $assert(($urgent['emergency_diversion'] ?? false) === true, 'Emergency redirect must be explicit.');
 $assert(($urgent['source'] ?? '') === 'file15_urgent_care_diversion', 'Emergency query must exit before a provider is queried.');
 
@@ -46,7 +46,7 @@ $adversarial = RSR_Four_Plan_Compliance::enhance_search_result([
     'zero_result_recovery' => ['alternate_query' => ['keyword' => 'test']],
 ], ['keyword' => 'shortness of breath', 'filters' => []]);
 $assert(($adversarial['results'] ?? null) === [], 'Unsafe third-party adapter results must be cleared.');
-$assert(($adversarial['next_cursor'] ?? 'INVALID') === null, 'Unsafe third-party pagination must be cleared.');
+$assert(array_key_exists('next_cursor', $adversarial) && $adversarial['next_cursor'] === null, 'Unsafe third-party pagination must be cleared.');
 $assert(!isset($adversarial['zero_result_recovery']), 'Emergency results must not suggest alternative remedy search.');
 $assert(($adversarial['emergency_diversion'] ?? false) === true, 'Emergency safety state must persist.');
 
