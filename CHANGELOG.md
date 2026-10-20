@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.3 — 2026-10-20
+
+- Strict Radar parameter types and explicit current File 06 eligibility assertions.
+- Additional Urdu emergency signals; verified third forty-pass source/QA review.
+- Schema remains at 1.2.0; live deployment and external integration are unverified.
+
+
 ## 1.2.2 — 2026-10-20 (second corrective audit)
 
 - Urgent red flags now suppress all Radar recommendations/cursors before File 06 lookup, including defensive public-contract decoration.
