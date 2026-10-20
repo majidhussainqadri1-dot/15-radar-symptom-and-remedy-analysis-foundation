@@ -54,6 +54,8 @@ $arrayKeyword = RSR_Domain::validate_radar_query(['keyword' => ['burning']]);
 $assert($arrayKeyword['valid'] === false && in_array('invalid_keyword_type', $arrayKeyword['errors'], true), 'Structured keyword must fail validation.');
 $arrayMode = RSR_Domain::validate_radar_query(['keyword' => 'burning', 'mode' => ['OR']]);
 $assert($arrayMode['valid'] === false && in_array('invalid_mode_type', $arrayMode['errors'], true), 'Structured match mode must fail validation.');
+$arrayRemedyIds = RSR_Domain::validate_comparison_ids([['nested' => 'invalid']]);
+$assert(!$arrayRemedyIds['valid'], 'Nested remedy IDs must not pass validation.');
 $score = RSR_Domain::score_trend([
     'volume' => INF,
     'baseline' => NAN,
