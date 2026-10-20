@@ -245,7 +245,7 @@ final class RSR_Domain
         $normalized = [];
         $errors = [];
         foreach ($ids as $id) {
-            if (!is_scalar($id)) {
+            if (!is_scalar($id) || is_bool($id)) {
                 $errors[] = 'invalid_remedy_id';
                 continue;
             }
