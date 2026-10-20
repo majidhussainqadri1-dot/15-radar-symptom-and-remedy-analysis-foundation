@@ -68,6 +68,7 @@ $assert(substr_count($hardening, "isset(\$_GET['keyword']) || isset(\$_POST['key
 $assert(str_contains($retrieval, "'match_count' => count(\$mappings)"), 'External evidence count must be derived from reviewed mappings, not adapter claims.');
 $assert(str_contains($retrieval, "if (\$mappings === [])"), 'External candidates without mapped sources must be excluded.');
 $assert(str_contains($retrieval, "'rsr_file06_legacy_remedy_eligible'"), 'Legacy File 06 publication alone must not bypass eligibility.');
+$assert(str_contains($retrieval, "['eligible'] ?? null) !== true"), 'File06 clinical eligibility must be a Boolean true.');
 $assert(strpos($public, "safety_escalation(\$query)") < strpos($public, "apply_filters('rsr_file06_search'"), 'Urgent diversion must run before any File 06 search adapter.');
 
 if ($failures !== []) {
