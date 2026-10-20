@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="$ROOT/15-radar-symptom-and-remedy-analysis-foundation"
 DIST="$ROOT/dist"
-VERSION="1.2.0"
+VERSION="1.2.1"
 ZIP_NAME="15-radar-symptom-and-remedy-analysis-foundation-${VERSION}.zip"
 ZIP_PATH="$DIST/$ZIP_NAME"
 SECOND_ZIP="$DIST/.determinism-second.zip"
@@ -130,11 +130,11 @@ PLUGIN_PHP_COUNT="$(find "$PLUGIN_DIR" -type f -name '*.php' | wc -l | tr -d ' '
 BUILD_UTC="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 cat > "$ROOT/docs/RELEASE-EVIDENCE.md" <<EOF
-# Release Evidence — 1.2.0
+# Release Evidence — 1.2.1
 
 Generated: \`$BUILD_UTC\`
 
-## Forty-round result
+## Historical forty-round result (2026-08-06 baseline)
 
 - Total sequential review/fix rounds: **40**
 - Rounds in which defects were found and corrected before the next round: **32**
@@ -157,9 +157,9 @@ Generated: \`$BUILD_UTC\`
 
 ## Corrective scope
 
-Version 1.2.0 adds atomic schema upgrade verification, durable event inbox and row-level outbox leases, database-atomic rate limiting, production-grade encryption-key requirements and rotation, decrypt-failure overwrite protection, bounded PII/log/provider ingestion, stricter source/licence/provenance gates, transactional publish/correct/retract operations, approval separation, stable pagination, current eligibility revalidation, POST health-query transport, lazy schema loading and expanded regression evidence.
+Baseline version 1.2.0 added atomic schema upgrade verification, durable event inbox and row-level outbox leases, database-atomic rate limiting, production-grade encryption-key requirements and rotation, decrypt-failure overwrite protection, bounded PII/log/provider ingestion, stricter source/licence/provenance gates, transactional publish/correct/retract operations, approval separation, stable pagination, current eligibility revalidation, POST health-query transport, lazy schema loading and expanded regression evidence.
 
-## Evidence qualification
+Version 1.2.1 repairs the public trend report sort/cursor mismatch, tests backward-compatible cursor decoding, and restores four-plan compliance to the mandatory build gate. The database schema remains 1.2.0. These candidate fixes do not constitute staging/live verification.\n\n## Evidence qualification
 
 This document establishes source implementation, deterministic package integrity and automated checks in the available build environment. It does not establish Hostinger staging, real companion-plugin/provider contracts, measured browser/accessibility/performance acceptance, backup/restore rehearsal, production deployment or operational service. Those remain explicit external gates.
 EOF
