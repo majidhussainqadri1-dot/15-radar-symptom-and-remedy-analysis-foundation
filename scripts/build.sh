@@ -35,6 +35,8 @@ php "$ROOT/tests/static-regression.php" | tee "$DIST/static-regression.log"
 STATIC_CHECKS="$(grep -Eo 'PASS [0-9]+ static requirement/regression checks' "$DIST/static-regression.log" | awk '{print $2}')"
 printf 'Running forty-round regression tests...\n'
 php "$ROOT/tests/forty-round-regression.php" | tee "$DIST/forty-round-regression.log"
+printf 'Running four-plan compliance regression...\n'
+php "$ROOT/tests/four-plan-compliance.php" | tee "$DIST/four-plan-compliance.log"
 FORTY_CHECKS="$(grep -Eo 'PASS [0-9]+ forty-round controls' "$DIST/forty-round-regression.log" | awk '{print $2}')"
 
 printf 'Generating source manifest...\n'
