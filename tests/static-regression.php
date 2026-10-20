@@ -148,7 +148,7 @@ $assert(str_contains($trendTemplate, 'review_date') && str_contains($trendTempla
 $assert(str_contains($capabilities, 'APPROVE_REPORTS'), 'Separate approval capability is missing.');
 $assert(str_contains($manageTemplate, 'can_approve_reports'), 'Separate Approve UI action is missing.');
 $assert(str_contains($routes, "'can_approve_reports'"), 'Route view lacks approval capability.');
-$assert(str_contains($routes, "RSR_Hardening::rate_limit('html_' . $route"), 'Page-level Radar/Compare rate limit is missing.');
+$assert(str_contains($routes, 'RSR_Hardening::rate_limit(\'html_\' . $route'), 'Page-level Radar/Compare rate limit is missing.');
 $assert(str_contains($routes, "'schema' => ['dimensions' => RSR_Domain::dimensions(), 'values' => []]") && str_contains($routes, 'if ($route === \'radar\')') && str_contains($routes, '$base[\'schema\'] = $this->radar->schema()'), 'Lazy schema loading is missing.');
 $assert(str_contains($radarTemplate, 'method="post"') && str_contains($compareTemplate, 'method="post"'), 'Health research forms must use POST.');
 $assert(str_contains($routes, 'nocache_headers') && str_contains($routes, 'Referrer-Policy'), 'Health-query page privacy headers are incomplete.');
