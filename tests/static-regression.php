@@ -105,7 +105,7 @@ $assert(str_contains($pii, 'input_too_complex') && str_contains($pii, 'input_too
 
 $assert(str_contains($observability, 'RSR_PII_Scanner::scan'), 'Observability must scan values for PII.');
 $assert(!str_contains($observability, 'rsr-ip-hash'), 'Predictable IP salt fallback must not exist.');
-$assert(str_contains($observability, "$state['nodes'] > 1000") && str_contains($observability, 'array_slice($value, 0, 200'), 'Redaction bounds are missing.');
+$assert(str_contains($observability, '$state[\'nodes\'] > 1000') && str_contains($observability, 'array_slice($value, 0, 200'), 'Redaction bounds are missing.');
 
 $assert(str_contains($events, "RSR_DB::table('inbox')"), 'Durable inbox is missing.');
 $assert(str_contains($events, 'payload_hash'), 'Event collision hash is missing.');
