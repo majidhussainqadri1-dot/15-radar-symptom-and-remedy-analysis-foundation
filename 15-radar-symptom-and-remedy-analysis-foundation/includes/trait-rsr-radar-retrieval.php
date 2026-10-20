@@ -152,7 +152,13 @@ trait RSR_Radar_Retrieval_Trait
                 $license = sanitize_key((string)($mapping['license'] ?? $mapping['license_code'] ?? ''));
                 $reference = sanitize_text_field((string)($mapping['reference'] ?? ''));
                 $review_date = sanitize_text_field((string)($mapping['review_date'] ?? ''));
-                if ($reference === '' || !in_array($license, RSR_Domain::allowed_source_licenses(), true) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $review_date)) {
+                if ($reference === ''
+                    || sanitize_text_field((string)($mapping['source_id'] ?? '')) === ''
+                    || !in_array($license, RSR_Domain::allowed_source_licenses(), true)
+                    || !preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $review_date)
+                    || $review_date > gmdate('Y-m-d')
+                    || !checkdate((int)substr($review_date, 5, 2), (int)substr($review_date, 8, 2), (int)substr($review_date, 0, 4))
+                ) {
                     continue;
                 }
                 $mappings[] = [
@@ -165,10 +171,15 @@ trait RSR_Radar_Retrieval_Trait
                     'version' => absint($mapping['version'] ?? 1),
                 ];
             }
+            if ($mappings === []) {
+                // A published File 06 remedy without governed evidence is
+                // not a source-linked Radar match.
+                continue;
+            }
             $results[] = [
                 'remedy_public_id' => $id,
                 'remedy' => $eligible[$id],
-                'match_count' => max(0, min(1000, (int)($item['match_count'] ?? count($mappings)))),
+                'match_count' => count($mappings),
                 'mappings' => $mappings,
             ];
         }
@@ -243,7 +254,13 @@ trait RSR_Radar_Retrieval_Trait
                     continue;
                 }
                 $post_id = (int)$id;
-                if (get_post_status($post_id) !== 'publish' || get_post_type($post_id) !== HE_Content::TYPE) {
+                // Legacy WordPress visibility is not canonical current
+                // File 06 clinical publication/eligibility proof. An owner-
+                // governed adapter must explicitly confirm each remedy.
+                if (apply_filters('rsr_file06_legacy_remedy_eligible', false, $post_id, $id, 'v1') !== true
+                    || get_post_status($post_id) !== 'publish'
+                    || get_post_type($post_id) !== HE_Content::TYPE
+                ) {
                     continue;
                 }
                 if (method_exists('HE_Content', 'type') && HE_Content::type($post_id, 'slug') !== 'remedy') {
