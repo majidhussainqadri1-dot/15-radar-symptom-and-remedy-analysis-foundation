@@ -323,24 +323,48 @@ final class RSR_Routes
         return false;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Public HTML input is as untrusted as REST JSON: never coerce nested
+     * arrays/objects to the literal string "Array" or expose PHP warnings.
+     * Malformed research inputs remain invalid and must not trigger a search.
+     * @return array<string, mixed>
+     */
     private function request_query(): array
     {
         $request = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' ? $_POST : $_GET;
         $filters = [];
+        $invalid = false;
         foreach (array_keys(RSR_Domain::dimensions()) as $dimension) {
             $key = 'filter_' . $dimension;
-            if (isset($request[$key])) {
-                $values = array_map('sanitize_text_field', (array)wp_unslash($request[$key]));
-                $values = array_values(array_filter($values, static fn(string $value): bool => $value !== ''));
-                if ($values !== []) {
-                    $filters[$dimension] = $values;
+            if (!isset($request[$key])) {
+                continue;
+            }
+            $raw = $request[$key];
+            $values = is_array($raw) ? $raw : [$raw];
+            foreach ($values as $value) {
+                if (!is_string($value) && !is_numeric($value)) {
+                    $invalid = true;
+                    continue;
+                }
+                $clean = sanitize_text_field(wp_unslash((string)$value));
+                if ($clean !== '') {
+                    $filters[$dimension][] = $clean;
                 }
             }
         }
+        $keyword = $this->request_scalar('keyword') ?? '';
+        $mode = $this->request_scalar('mode');
+        if ((isset($request['keyword']) && !is_string($request['keyword']))
+            || (isset($request['mode']) && !is_string($request['mode']))
+            || $invalid
+        ) {
+            // Invalid input is represented as an unknown dimension, which the
+            // canonical query validator rejects with no provider request.
+            $filters['__invalid_input__'] = ['invalid'];
+        }
         return [
-            'keyword' => isset($request['keyword']) ? sanitize_text_field(wp_unslash((string)$request['keyword'])) : '',
-            'mode' => isset($request['mode']) && strtoupper((string)$request['mode']) === 'OR' ? 'OR' : 'AND',
+            'keyword' => $keyword,
+            'mode' => strtoupper((string)$mode) === 'OR' ? 'OR' : 'AND',
             'filters' => $filters,
         ];
     }
@@ -349,18 +373,30 @@ final class RSR_Routes
     private function request_remedies(): array
     {
         $request = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' ? $_POST : $_GET;
-        return isset($request['remedies'])
-            ? array_values(array_filter(array_map('sanitize_text_field', (array)wp_unslash($request['remedies']))))
-            : [];
+        if (!isset($request['remedies'])) {
+            return [];
+        }
+        $raw = is_array($request['remedies']) ? $request['remedies'] : [$request['remedies']];
+        $ids = [];
+        foreach ($raw as $id) {
+            if (!is_string($id) && !is_numeric($id)) {
+                return []; // Fail closed, never partially accept nested IDs.
+            }
+            $value = sanitize_text_field(wp_unslash((string)$id));
+            if ($value !== '') {
+                $ids[] = $value;
+            }
+        }
+        return $ids;
     }
 
     private function request_scalar(string $key): ?string
     {
         $request = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' ? $_POST : $_GET;
-        if (!isset($request[$key])) {
+        if (!isset($request[$key]) || !is_string($request[$key])) {
             return null;
         }
-        $value = sanitize_text_field(wp_unslash((string)$request[$key]));
+        $value = sanitize_text_field(wp_unslash($request[$key]));
         return $value !== '' ? $value : null;
     }
 
