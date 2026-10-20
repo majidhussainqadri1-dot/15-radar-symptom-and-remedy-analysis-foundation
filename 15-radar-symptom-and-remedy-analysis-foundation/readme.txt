@@ -65,6 +65,9 @@ No. Only public approved Radar results and published/corrected public reports ar
 
 == Changelog ==
 
+= 1.2.3 =
+* Strict parameter and File 06 eligibility validation; broader Urdu emergency diversion.
+
 = 1.2.2 =
 * Red-flag queries halt remedy search and require urgent-care diversion.
 * Fix single-keyword health-query no-store/no-referrer handling.
