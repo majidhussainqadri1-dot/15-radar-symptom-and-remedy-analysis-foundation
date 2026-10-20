@@ -26,8 +26,9 @@
 - Q03: new forty-lens matrix initially escaped PHP variables and single quotes incorrectly; switched to literal JSON/nowdoc parsing.
 - Q04: root-level architecture documents were incorrectly addressed as plugin-local paths for rounds 38/39.
 - Q05: a pre-existing static regression test interpolated an undefined `$route` variable in an assertion; converted to a literal check.
+- Q06 (post-merge, exact-main CI): the tamper test replaced the last two Base64 characters with `AA`, which sometimes did not alter authenticated binary bytes. A real decoded ciphertext byte is now flipped deterministically before re-encoding; prevents spurious crypto-test failures across repeated runs.
 
-These are **five test/harness defects**, not five additional production vulnerabilities. Failures were corrected before the next successful complete 40-cycle run.
+These are **six test/harness defects**, not five additional production vulnerabilities. Failures were corrected before the next successful complete 40-cycle run.
 
 ## Final forty sequential source-review cycles
 
@@ -80,7 +81,7 @@ Each numbered round ran its distinct plan/source-ownership presence check **foll
 
 - GitHub Actions run: `39454928827`, exact branch HEAD `2306eda3e5d2a729a69731249181322769e7a3aa` (before this documentation commit).
 - Three PHP matrix jobs: **PHP 8.1 / 8.3 / 8.4 all SUCCESS**.
-- Domain/security: **44 assertions PASS**.
+- Domain/security: **45 assertions expected after deterministic byte-flip test; exact-HEAD CI pending**.
 - Static regression: **167 checks PASS**.
 - Historical 40-round controls: **26 PASS**.
 - Four-plan: **24 positive + 2 negative PASS**.
@@ -114,4 +115,4 @@ If a live incident is raised: **Exact deployed code ابھی unverified ہے؛ r
 - Migration State: **Unknown**.
 - Live Verification Status: **Not done**.
 
-**Known source corrections: 4/4; QA/harness corrections: 5/5; final 40 automated sequential source cycles PASS; staging/live external gates OPEN.**
+**Known source corrections: 4/4; QA/harness corrections: 6/6; final 40 automated sequential source cycles PASS; staging/live external gates OPEN.**

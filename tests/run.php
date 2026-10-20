@@ -89,7 +89,19 @@ $cipher = RSR_Crypto::encrypt($plain);
 $assert(str_starts_with($cipher, 's2:') || str_starts_with($cipher, 'o2:'), 'New ciphertext must use v2 key-identified format.');
 $assert(RSR_Crypto::decrypt($cipher) === $plain, 'Ciphertext must round-trip.');
 $assert(strlen(RSR_Crypto::key_fingerprint()) === 16, 'Key fingerprint must be 16 hexadecimal characters.');
-$tampered = substr($cipher, 0, -2) . 'AA';
+// Mutate a real authenticated ciphertext byte, not Base64 tail characters:
+ // replacing a Base64 suffix can preserve the same decoded bytes/padding.
+$tampered = $cipher;
+$separator = strrpos($cipher, ':');
+if ($separator !== false) {
+    $payload = base64_decode(substr($cipher, $separator + 1), true);
+    if (is_string($payload) && $payload !== '') {
+        $last_byte = strlen($payload) - 1;
+        $payload[$last_byte] = chr(ord($payload[$last_byte]) ^ 0x01);
+        $tampered = substr($cipher, 0, $separator + 1) . base64_encode($payload);
+    }
+}
+$assert($tampered !== $cipher, 'Tamper test must change an actual ciphertext byte.');
 $tamperRejected = false;
 try {
     RSR_Crypto::decrypt($tampered);

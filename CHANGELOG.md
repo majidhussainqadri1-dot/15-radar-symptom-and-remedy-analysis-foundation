@@ -7,6 +7,7 @@
 - External Radar evidence must be date-valid, source-linked, nonempty and deduplicated; provider-supplied evidence counts are not blindly trusted.
 - Legacy File 06 remedy bridge requires explicit native-owner per-remedy eligibility approval, default deny.
 - Added medical boundary regression suite and forty sequential automated source/test review rounds.
+- Hardened intermittent authenticated-ciphertext tamper assertion to change a real binary byte, so repeated 40-round QA does not rely on Base64 padding behavior.
 - Database schema is unchanged at 1.2.0; staging, deployed artifact and integration runtime remain unverified.
 
 ## 1.2.1 — 2026-10-20 (corrective candidate)
