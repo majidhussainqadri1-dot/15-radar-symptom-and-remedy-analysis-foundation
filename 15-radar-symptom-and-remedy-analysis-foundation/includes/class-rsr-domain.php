@@ -178,6 +178,10 @@ final class RSR_Domain
             $values = is_array($values) ? $values : [$values];
             $normalized = [];
             foreach ($values as $value) {
+                if (!is_scalar($value)) {
+                    $errors[] = 'invalid_filter_value_type:' . $dimension;
+                    continue;
+                }
                 $value = trim((string)$value);
                 if ($value === '') {
                     continue;
