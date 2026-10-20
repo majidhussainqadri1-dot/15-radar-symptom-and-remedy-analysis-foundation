@@ -73,6 +73,16 @@ Every check runs a distinct source-contract lens and *then* the entire existing 
 3. **File 16 / File 26 / File 20 / File 24 / File 25:** File 16 receives only approved public retrieval, File 26 owns search/rank projections, File 20 shell/routes, File 25 visual components, and File 24 audit/assurance. No native owner data/schema writes are authorized via File 15. Presently no jointly executed real WordPress staging contract test verifies all these interactions.
 4. **Live Reality Freeze:** Exact deployed plugin files/checksum, active plugin version, wp_options schema version, database columns and rows, migration lock state, runtime errors/logs and active dependencies were not available. Do not label the live defect `Resolved`; repository testing cannot establish deployed parity.
 
+## Verified exact-branch GitHub CI (first complete 1.2.3 release candidate)
+
+- Verified commit: `b1f8d3796a4085e18381608dec3a2958ec55d608`.
+- Actions run: `39459367286`; all three quality jobs successful at PHP 8.1, 8.3, 8.4.
+- Domain/security: **49 PASS**; static requirements/regression: **167 PASS**; clinical-boundary/privacy/provenance: **19 PASS**.
+- Four-plan positive and negative controls remain in the full gate; **40/40 sequential source/test passes**.
+- Built package `15-radar-symptom-and-remedy-analysis-foundation-1.2.3.zip`.
+- Inner plugin ZIP SHA-256: `e1168de8384acc66c39d48019b3641820c6794b1bb6b1f0cf676462186ad8f9e`. This is not a deployed artifact checksum.
+- Documentation commits and final squash merge produce new exact HEADs requiring their own independent successful CI; do not carry the branch-run result over as if it proved an untested merge.
+
 ## Release evidence
 
 The CI-reported exact candidate commit, successful forty-cycle count, job matrix, artifact SHA-256, failed/skipped checks and regression totals must be independently copied from the final GitHub Actions run after this report is committed. Do not reuse the earlier 1.2.2 SHA for 1.2.3.
