@@ -4,7 +4,7 @@ Tags: homeopathy, research, radar, trends, remedies, analytics
 Requires at least: 6.5
 Tested up to: 7.0.1
 Requires PHP: 8.1
-Stable tag: 1.2.3
+Stable tag: 1.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,9 @@ No. Automated and manual ingestion creates or refreshes a draft. Separate analys
 No. Only public approved Radar results and published/corrected public reports are exposed through integration contracts.
 
 == Changelog ==
+
+= 1.2.4 =
+* HTML Radar forms reject nested keyword, filter, cursor, mode and remedy identifiers without unsafe coercion; added 40-pass regression coverage.
 
 = 1.2.3 =
 * Strict parameter and File 06 eligibility validation; broader Urdu emergency diversion.
