@@ -29,7 +29,7 @@ $assert(str_contains($audit, 'جن ادوار میں کوئی نیا نقص نہ
 $assert(substr_count($audit, 'دوبارہ جانچ کامیاب') >= 32, 'Each defect round must record correction and successful retest.');
 
 $requiredTokens = [
-    "define('RSR_VERSION', '1.2.0')",
+    "define('RSR_VERSION', '1.2.1')",
     "define('RSR_SCHEMA_VERSION', '1.2.0')",
     "'inbox' =>",
     "'rate_limits' =>",

@@ -110,6 +110,13 @@ $assert($canonicalA === $canonicalB, 'Canonical JSON must be object-key order in
 $assert(RSR_Domain::can_transition_report('draft', 'analyst_review'), 'Draft must transition to analyst review.');
 $assert(!RSR_Domain::can_transition_report('draft', 'published'), 'Draft must never publish directly.');
 
+$cursor = RSR_Domain::encode_report_cursor('2026-08-06 18:00:00', 42);
+$assert(RSR_Domain::parse_report_cursor($cursor) === ['sort_time' => '2026-08-06 18:00:00', 'id' => 42], 'Publication-order cursor must round-trip both tuple components.');
+$assert(RSR_Domain::parse_report_cursor(base64_encode('42')) === ['legacy_id' => 42], 'Legacy ID-only trend cursor must remain readable during upgrade.');
+$assert(RSR_Domain::parse_report_cursor('not-base64!') === null, 'Malformed trend cursor must be rejected.');
+$assert(RSR_Domain::parse_report_cursor(base64_encode('{\"sort_time\":\"2026-02-31 12:00:00\",\"id\":42}')) === null, 'Invalid calendar date in cursor must be rejected.');
+$assert(RSR_Domain::parse_report_cursor(base64_encode('{\"sort_time\":\"2026-08-06 18:00:00\",\"id\":0}')) === null, 'Zero ID cursor must be rejected.');
+
 if ($failures !== []) {
     fwrite(STDERR, "FAILED {$tests} domain/security assertions\n- " . implode("\n- ", $failures) . "\n");
     exit(1);

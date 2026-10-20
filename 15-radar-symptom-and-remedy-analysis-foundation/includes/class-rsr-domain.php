@@ -390,6 +390,58 @@ final class RSR_Domain
         ];
     }
 
+    /**
+     * A public trend-page cursor must contain the complete tuple used by SQL
+     * ordering. An ID-only cursor drops older, newly published reports.
+     *
+     * @return array{sort_time: string, id: int}|array{legacy_id: int}|null
+     */
+    public static function parse_report_cursor(string $cursor): ?array
+    {
+        if ($cursor === '' || strlen($cursor) > 256) {
+            return null;
+        }
+        $decoded = base64_decode($cursor, true);
+        if (!is_string($decoded) || $decoded === '') {
+            return null;
+        }
+
+        // Read legacy v1.2.0 cursors during a rolling upgrade.
+        if (ctype_digit($decoded) && strlen($decoded) <= 19 && (int)$decoded > 0) {
+            return ['legacy_id' => (int)$decoded];
+        }
+
+        $position = json_decode($decoded, true);
+        if (!is_array($position)
+            || count($position) !== 2
+            || !isset($position['sort_time'], $position['id'])
+            || !is_string($position['sort_time'])
+            || !self::valid_report_cursor_time($position['sort_time'])
+            || !is_int($position['id'])
+            || $position['id'] <= 0
+        ) {
+            return null;
+        }
+        return ['sort_time' => $position['sort_time'], 'id' => $position['id']];
+    }
+
+    public static function encode_report_cursor(string $sort_time, int $id): string
+    {
+        if ($id <= 0 || !self::valid_report_cursor_time($sort_time)) {
+            throw new InvalidArgumentException('Invalid trend-page cursor position.');
+        }
+        return base64_encode(self::canonical_json(['sort_time' => $sort_time, 'id' => $id]));
+    }
+
+    private static function valid_report_cursor_time(string $time): bool
+    {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D', $time)) {
+            return false;
+        }
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $time, new DateTimeZone('UTC'));
+        return $date instanceof DateTimeImmutable && $date->format('Y-m-d H:i:s') === $time;
+    }
+
     /** @param mixed $value */
     public static function canonical_json($value): string
     {

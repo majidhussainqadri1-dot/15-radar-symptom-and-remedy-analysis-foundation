@@ -71,10 +71,10 @@ $adminJs = $files['assets/js/rsr-admin.js'] ?? '';
 $readme = $files['readme.txt'] ?? '';
 
 $assert(is_dir($plugin), 'Canonical plugin directory is missing.');
-$assert(str_contains($main, 'Version: 1.2.0'), 'Plugin header version must be 1.2.0.');
-$assert(str_contains($main, "define('RSR_VERSION', '1.2.0')"), 'Runtime version must be 1.2.0.');
+$assert(str_contains($main, 'Version: 1.2.1'), 'Plugin header version must be 1.2.1.');
+$assert(str_contains($main, "define('RSR_VERSION', '1.2.1')"), 'Runtime version must be 1.2.1.');
 $assert(str_contains($main, "define('RSR_SCHEMA_VERSION', '1.2.0')"), 'Schema version must be 1.2.0.');
-$assert(str_contains($readme, 'Stable tag: 1.2.0'), 'Stable tag must be 1.2.0.');
+$assert(str_contains($readme, 'Stable tag: 1.2.1'), 'Stable tag must be 1.2.1.');
 $assert(str_contains($main, "class-rsr-hardening.php"), 'Hardening class must be loaded.');
 $assert(count($phpFiles) >= 30, 'Expected at least thirty plugin PHP files.');
 $assert(count($jsFiles) === 2, 'Expected exactly public and operations JavaScript bundles.');
@@ -105,7 +105,7 @@ $assert(str_contains($pii, 'input_too_complex') && str_contains($pii, 'input_too
 
 $assert(str_contains($observability, 'RSR_PII_Scanner::scan'), 'Observability must scan values for PII.');
 $assert(!str_contains($observability, 'rsr-ip-hash'), 'Predictable IP salt fallback must not exist.');
-$assert(str_contains($observability, "$state['nodes'] > 1000") && str_contains($observability, 'array_slice($value, 0, 200'), 'Redaction bounds are missing.');
+$assert(str_contains($observability, '$state[\'nodes\'] > 1000') && str_contains($observability, 'array_slice($value, 0, 200'), 'Redaction bounds are missing.');
 
 $assert(str_contains($events, "RSR_DB::table('inbox')"), 'Durable inbox is missing.');
 $assert(str_contains($events, 'payload_hash'), 'Event collision hash is missing.');
@@ -119,7 +119,7 @@ $assert(str_contains($domain, 'invalid_remedy_id'), 'Malformed remedy identifier
 $assert(str_contains($domain, 'array_merge($existing, $normalized)'), 'Normalized filter collision merge is missing.');
 $assert(str_contains($domain, 'RSR_Hardening::finite_float'), 'Finite trend scoring is missing.');
 
-$assert(str_contains($provider, 'Invalid File 15 trend provider contract') && str_contains($provider, "$capabilities['privacy'] === 'aggregated_only'"), 'Provider capability validation is missing.');
+$assert(str_contains($provider, 'Invalid File 15 trend provider contract') && str_contains($provider, '$capabilities[\'privacy\'] === \'aggregated_only\''), 'Provider capability validation is missing.');
 $assert(str_contains($provider, 'destination_allowlist'), 'Network provider destination allowlist contract is missing.');
 $assert(str_contains($manual, 'MAX_MANUAL_ROWS') && str_contains($manual, 'MAX_MANUAL_BODY_BYTES'), 'Manual provider payload bounds are missing.');
 $assert(str_contains($manual, 'finite_float'), 'Manual provider finite number validation is missing.');
@@ -149,7 +149,7 @@ $assert(str_contains($capabilities, 'APPROVE_REPORTS'), 'Separate approval capab
 $assert(str_contains($manageTemplate, 'can_approve_reports'), 'Separate Approve UI action is missing.');
 $assert(str_contains($routes, "'can_approve_reports'"), 'Route view lacks approval capability.');
 $assert(str_contains($routes, "RSR_Hardening::rate_limit('html_' . $route"), 'Page-level Radar/Compare rate limit is missing.');
-$assert(str_contains($routes, "'schema' => ['dimensions' => RSR_Domain::dimensions(), 'values' => []]") && str_contains($routes, "if ($route === 'radar')") && str_contains($routes, "$base['schema'] = $this->radar->schema()"), 'Lazy schema loading is missing.');
+$assert(str_contains($routes, "'schema' => ['dimensions' => RSR_Domain::dimensions(), 'values' => []]") && str_contains($routes, 'if ($route === \'radar\')') && str_contains($routes, '$base[\'schema\'] = $this->radar->schema()'), 'Lazy schema loading is missing.');
 $assert(str_contains($radarTemplate, 'method="post"') && str_contains($compareTemplate, 'method="post"'), 'Health research forms must use POST.');
 $assert(str_contains($routes, 'nocache_headers') && str_contains($routes, 'Referrer-Policy'), 'Health-query page privacy headers are incomplete.');
 $assert(str_contains($routes, 'sabri_file20_context_controls_markup_v1'), 'File 20 context-control contract is missing.');
@@ -180,6 +180,22 @@ foreach ($phpFiles as $relative => $content) {
     }
     $assert(!preg_match('/\b(?:eval|exec|shell_exec|system|passthru)\s*\(/', $content), "Dangerous execution primitive in {$relative}.");
 }
+
+// Independent regression for the newly repaired trend-page pagination.
+$assert(
+    str_contains($trends, 'COALESCE(published_at, created_at) < %s')
+    && str_contains($trends, 'COALESCE(published_at, created_at) = %s AND id < %d')
+    && str_contains($trends, 'ORDER BY COALESCE(published_at, created_at) DESC, id DESC')
+    && str_contains($trends, 'RSR_Domain::parse_report_cursor')
+    && str_contains($trends, 'RSR_Domain::encode_report_cursor'),
+    'Trend pagination must keyset by the complete publication-time/id ordering tuple.'
+);
+$assert(
+    str_contains($domain, 'function parse_report_cursor')
+    && str_contains($domain, 'function encode_report_cursor')
+    && str_contains($domain, 'legacy_id'),
+    'Versioned composite and legacy cursor parsing must remain available.'
+);
 
 if ($failures !== []) {
     fwrite(STDERR, "FAILED {$checks} static checks\n- " . implode("\n- ", $failures) . "\n");

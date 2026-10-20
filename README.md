@@ -4,7 +4,7 @@ WordPress implementation for File 15 of the Sabri Social Homeopathy Platform.
 
 ## Release
 
-- Plugin: `1.2.0`
+- Plugin: `1.2.1`
 - Schema: `1.2.0`
 - PHP: `8.1+`
 - Target integration baseline: WordPress `7.0.1`, PHP `8.3`
@@ -13,6 +13,10 @@ WordPress implementation for File 15 of the Sabri Social Homeopathy Platform.
 ## Canonical boundary
 
 File 15 owns governed Radar dimensions/mappings, up-to-three remedy comparison, private verified-doctor Saved Studies, source/provider governance, aggregate trend ingestion, reproducible scoring, editorial reports, corrections and retractions. It does not own diagnosis, prescription, potency/dosage, patient records, identity truth, encyclopedia truth, global shell or federated search.
+
+## Correction in 1.2.1
+
+Fixes out-of-order public trend pagination and restores the four-plan compliance regression to the mandatory build suite. The schema remains `1.2.0`. No staging or live acceptance is implied.
 
 ## Verification
 

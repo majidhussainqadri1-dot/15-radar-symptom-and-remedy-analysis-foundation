@@ -26,21 +26,54 @@ trait RSR_Trend_Reports_Trait
             $params[] = $geography;
         }
         $limit = max(1, min(100, (int)($filters['limit'] ?? 20)));
-        $cursor = isset($filters['cursor']) ? base64_decode((string)$filters['cursor'], true) : false;
-        if (is_string($cursor) && ctype_digit($cursor) && (int)$cursor > 0) {
-            $where[] = 'id < %d';
-            $params[] = (int)$cursor;
+        $cursor_text = isset($filters['cursor']) && is_scalar($filters['cursor'])
+            ? (string)$filters['cursor'] : '';
+        if ($cursor_text !== '') {
+            $position = RSR_Domain::parse_report_cursor($cursor_text);
+            if ($position === null) {
+                // Invalid cursors must not silently restart from page one.
+                $where[] = '1=0';
+            } else {
+                if (isset($position['legacy_id'])) {
+                    // Old v1.2.0 cursors encoded only the row ID. Resolve the
+                    // publication timestamp before applying the same ordering.
+                    $legacy = $wpdb->get_row(
+                        $wpdb->prepare(
+                            "SELECT COALESCE(published_at, created_at) AS sort_time FROM {$table} WHERE id = %d AND status IN ('published','corrected') LIMIT 1",
+                            (int)$position['legacy_id']
+                        ),
+                        ARRAY_A
+                    );
+                    $position = is_array($legacy) && is_string($legacy['sort_time'] ?? null)
+                        ? ['sort_time' => (string)$legacy['sort_time'], 'id' => (int)$position['legacy_id']]
+                        : null;
+                }
+                if ($position === null) {
+                    $where[] = '1=0';
+                } else {
+                    $where[] = '(COALESCE(published_at, created_at) < %s OR (COALESCE(published_at, created_at) = %s AND id < %d))';
+                    $params[] = $position['sort_time'];
+                    $params[] = $position['sort_time'];
+                    $params[] = (int)$position['id'];
+                }
+            }
         }
-        $sql = "SELECT * FROM {$table} WHERE " . implode(' AND ', $where) . ' ORDER BY published_at DESC, id DESC LIMIT %d';
+        $sql = "SELECT * FROM {$table} WHERE " . implode(' AND ', $where)
+            . ' ORDER BY COALESCE(published_at, created_at) DESC, id DESC LIMIT %d';
         $params[] = $limit + 1;
         $rows = (array)$wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
         $has_more = count($rows) > $limit;
         $rows = array_slice($rows, 0, $limit);
         $items = array_map(fn(array $row): array => $this->report_dto($row, false), $rows);
         $last = end($rows);
+        $next_cursor = $has_more && is_array($last)
+            ? RSR_Domain::encode_report_cursor(
+                (string)($last['published_at'] ?: $last['created_at']),
+                (int)$last['id']
+            ) : null;
         return [
             'items' => $items,
-            'next_cursor' => $has_more && is_array($last) ? base64_encode((string)$last['id']) : null,
+            'next_cursor' => $next_cursor,
         ];
     }
 
