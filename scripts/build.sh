@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="$ROOT/15-radar-symptom-and-remedy-analysis-foundation"
 DIST="$ROOT/dist"
-VERSION="1.2.3"
+VERSION="1.2.4"
 ZIP_NAME="15-radar-symptom-and-remedy-analysis-foundation-${VERSION}.zip"
 ZIP_PATH="$DIST/$ZIP_NAME"
 SECOND_ZIP="$DIST/.determinism-second.zip"
@@ -136,7 +136,7 @@ PLUGIN_PHP_COUNT="$(find "$PLUGIN_DIR" -type f -name '*.php' | wc -l | tr -d ' '
 BUILD_UTC="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 cat > "$ROOT/docs/RELEASE-EVIDENCE.md" <<EOF
-# Release Evidence — 1.2.3
+# Release Evidence — 1.2.4
 
 Generated: \`$BUILD_UTC\`
 
