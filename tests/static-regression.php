@@ -119,7 +119,7 @@ $assert(str_contains($domain, 'invalid_remedy_id'), 'Malformed remedy identifier
 $assert(str_contains($domain, 'array_merge($existing, $normalized)'), 'Normalized filter collision merge is missing.');
 $assert(str_contains($domain, 'RSR_Hardening::finite_float'), 'Finite trend scoring is missing.');
 
-$assert(str_contains($provider, 'Invalid File 15 trend provider contract') && str_contains($provider, "$capabilities['privacy'] === 'aggregated_only'"), 'Provider capability validation is missing.');
+$assert(str_contains($provider, 'Invalid File 15 trend provider contract') && str_contains($provider, '$capabilities[\'privacy\'] === \'aggregated_only\''), 'Provider capability validation is missing.');
 $assert(str_contains($provider, 'destination_allowlist'), 'Network provider destination allowlist contract is missing.');
 $assert(str_contains($manual, 'MAX_MANUAL_ROWS') && str_contains($manual, 'MAX_MANUAL_BODY_BYTES'), 'Manual provider payload bounds are missing.');
 $assert(str_contains($manual, 'finite_float'), 'Manual provider finite number validation is missing.');
@@ -149,7 +149,7 @@ $assert(str_contains($capabilities, 'APPROVE_REPORTS'), 'Separate approval capab
 $assert(str_contains($manageTemplate, 'can_approve_reports'), 'Separate Approve UI action is missing.');
 $assert(str_contains($routes, "'can_approve_reports'"), 'Route view lacks approval capability.');
 $assert(str_contains($routes, "RSR_Hardening::rate_limit('html_' . $route"), 'Page-level Radar/Compare rate limit is missing.');
-$assert(str_contains($routes, "'schema' => ['dimensions' => RSR_Domain::dimensions(), 'values' => []]") && str_contains($routes, "if ($route === 'radar')") && str_contains($routes, "$base['schema'] = $this->radar->schema()"), 'Lazy schema loading is missing.');
+$assert(str_contains($routes, "'schema' => ['dimensions' => RSR_Domain::dimensions(), 'values' => []]") && str_contains($routes, 'if ($route === \'radar\')') && str_contains($routes, '$base[\'schema\'] = $this->radar->schema()'), 'Lazy schema loading is missing.');
 $assert(str_contains($radarTemplate, 'method="post"') && str_contains($compareTemplate, 'method="post"'), 'Health research forms must use POST.');
 $assert(str_contains($routes, 'nocache_headers') && str_contains($routes, 'Referrer-Policy'), 'Health-query page privacy headers are incomplete.');
 $assert(str_contains($routes, 'sabri_file20_context_controls_markup_v1'), 'File 20 context-control contract is missing.');
