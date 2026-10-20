@@ -30,15 +30,15 @@ jobs:
         run: bash scripts/build.sh
       - name: Verify canonical release identity
         run: |
-          grep -Fq 'Version: 1.2.1' 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
-          grep -Fq "define('RSR_VERSION', '1.2.1')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq 'Version: 1.2.2' 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
+          grep -Fq "define('RSR_VERSION', '1.2.2')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
           grep -Fq "define('RSR_SCHEMA_VERSION', '1.2.0')" 15-radar-symptom-and-remedy-analysis-foundation/radar-symptom-remedy-analysis.php
-          grep -Fq 'Stable tag: 1.2.1' 15-radar-symptom-and-remedy-analysis-foundation/readme.txt
+          grep -Fq 'Stable tag: 1.2.2' 15-radar-symptom-and-remedy-analysis-foundation/readme.txt
       - name: Upload release evidence
         if: matrix.php == '8.3'
         uses: actions/upload-artifact@v4
         with:
-          name: file-15-v1.2.1-release-evidence
+          name: file-15-v1.2.2-release-evidence
           path: |
             dist/
             docs/RELEASE-EVIDENCE.md
