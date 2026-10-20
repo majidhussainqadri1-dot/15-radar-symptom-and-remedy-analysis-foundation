@@ -244,7 +244,7 @@ trait RSR_Radar_Retrieval_Trait
                     continue;
                 }
                 $id = (string)($remedy['public_id'] ?? $key);
-                if (!in_array($id, $ids, true) || empty($remedy['published']) || empty($remedy['eligible'])) {
+                if (!in_array($id, $ids, true) || ($remedy['published'] ?? null) !== true || ($remedy['eligible'] ?? null) !== true) {
                     continue;
                 }
                 $out[$id] = [
