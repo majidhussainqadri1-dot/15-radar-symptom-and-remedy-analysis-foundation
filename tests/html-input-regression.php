@@ -13,7 +13,7 @@ $routes = (new ReflectionClass('RSR_Routes'))->newInstanceWithoutConstructor();
 $method = static function (string $name) use ($routes) {
     $reflection = new ReflectionMethod($routes, $name);
     $reflection->setAccessible(true);
-    return static fn() => $reflection->invoke($routes);
+    return static fn(...$arguments) => $reflection->invokeArgs($routes, $arguments);
 };
 $query = $method('request_query');
 $remedies = $method('request_remedies');
