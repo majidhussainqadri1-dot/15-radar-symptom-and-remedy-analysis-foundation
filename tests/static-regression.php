@@ -71,10 +71,10 @@ $adminJs = $files['assets/js/rsr-admin.js'] ?? '';
 $readme = $files['readme.txt'] ?? '';
 
 $assert(is_dir($plugin), 'Canonical plugin directory is missing.');
-$assert(str_contains($main, 'Version: 1.2.1'), 'Plugin header version must be 1.2.1.');
-$assert(str_contains($main, "define('RSR_VERSION', '1.2.1')"), 'Runtime version must be 1.2.1.');
+$assert(str_contains($main, 'Version: 1.2.2'), 'Plugin header version must be 1.2.2.');
+$assert(str_contains($main, "define('RSR_VERSION', '1.2.2')"), 'Runtime version must be 1.2.2.');
 $assert(str_contains($main, "define('RSR_SCHEMA_VERSION', '1.2.0')"), 'Schema version must be 1.2.0.');
-$assert(str_contains($readme, 'Stable tag: 1.2.1'), 'Stable tag must be 1.2.1.');
+$assert(str_contains($readme, 'Stable tag: 1.2.2'), 'Stable tag must be 1.2.2.');
 $assert(str_contains($main, "class-rsr-hardening.php"), 'Hardening class must be loaded.');
 $assert(count($phpFiles) >= 30, 'Expected at least thirty plugin PHP files.');
 $assert(count($jsFiles) === 2, 'Expected exactly public and operations JavaScript bundles.');
