@@ -6,7 +6,7 @@ $root = dirname(__DIR__);
 $plugin = $root . '/15-radar-symptom-and-remedy-analysis-foundation';
 
 $checks = [
-    'main version 1.2.2' => [$plugin . '/radar-symptom-remedy-analysis.php', "Version: 1.2.2"],
+    'main version 1.2.3' => [$plugin . '/radar-symptom-remedy-analysis.php', "Version: 1.2.3"],
     'compliance class loaded' => [$plugin . '/radar-symptom-remedy-analysis.php', 'class-rsr-four-plan-compliance.php'],
     'transport no-store' => [$plugin . '/includes/class-rsr-four-plan-compliance.php', 'private, no-store, max-age=0, must-revalidate'],
     'query no-referrer' => [$plugin . '/includes/class-rsr-four-plan-compliance.php', "Referrer-Policy: no-referrer"],
