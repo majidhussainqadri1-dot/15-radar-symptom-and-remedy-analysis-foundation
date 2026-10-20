@@ -331,7 +331,7 @@ final class RSR_Four_Plan_Compliance
         $signals = [
             'chest pain', 'difficulty breathing', 'shortness of breath', 'unconscious',
             'severe bleeding', 'stroke', 'suicide', 'poisoning', 'anaphylaxis',
-            'سینے میں شدید درد', 'سانس لینے میں دشواری', 'بے ہوش', 'شدید خون',
+            'سینے میں شدید درد', 'سینے میں درد', 'سانس لینے میں دشواری', 'سانس نہیں آ رہی', 'سانس نہیں آرہی', 'بے ہوش', 'شدید خون',
             'خودکشی', 'فالج', 'زہر', 'اختناق', 'ألم شديد في الصدر', 'صعوبة التنفس',
         ];
         foreach ($signals as $signal) {
