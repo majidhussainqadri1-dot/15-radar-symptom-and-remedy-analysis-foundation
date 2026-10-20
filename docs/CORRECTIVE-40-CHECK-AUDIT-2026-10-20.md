@@ -57,13 +57,19 @@ A PASS-like source signal means the relevant declaration or code path is present
 | 39 | Source provenance metadata | SOURCE SIGNAL PRESENT |
 | 40 | Real companion/staging acceptance | EXTERNAL UNVERIFIED |
  
-## Three source defects and corrective actions
+## Three initial source defects and corrective actions
 
 1. **Stale version assertion:** `tests/four-plan-compliance.php` required plugin `1.1.0` against actual `1.2.0`. Corrected to the unique new `1.2.1` release identity. Schema remains `1.2.0`.
 2. **Unexecuted four-plan gate:** `scripts/build.sh` ran domain/static/forty-round checks but omitted `tests/four-plan-compliance.php`. Added it as a blocking build step, with a retained log in `dist/`.
 3. **Inconsistent public report pagination:** `public_reports_page` ordered by `published_at DESC, id DESC` but used `id < cursor_id` alone. This can skip a report when publication sequence differs from row creation sequence. Replaced it with a complete time/ID keyset, consistent fallback for null published_at, strictly validated bounded cursors, and a legacy v1.2.0 cursor bridge. Added pure cursor tests and source regression guards.
 
 Release integrity: v1.2.1 distinct plugin/build/CI/readme metadata; **no database version bump and no same-version ZIP substitution**.
+
+## Additional defect discovered by actual CI
+
+4. **Broken PHP assertions in the baseline static test:** the test contained interpolated strings like `"$state['nodes'] > 1000"`, `"$capabilities['privacy'] === 'aggregated_only'"` and `"$base['schema']..."`. This caused real PHP lint errors on 8.1, 8.3 and 8.4 and prevented any subsequent test from running. All identified invalid string literals in `tests/static-regression.php` were converted into literal-safe single-quoted PHP strings. The patch requires fresh CI confirmation.
+
+**Defect total after executing CI: 4 repository defects** (3 identified by static audit, 1 discovered by runtime CI). None are reported resolved in staging/live.
 
 ## Cross-file dependency review and newly identified external blocker
 
@@ -89,8 +95,8 @@ Before live deployment: obtain exact active deployed artifact/checksum and DB sc
 | Live database version | Unknown / unverified |
 | Migration state | Unknown / unverified |
 | Live verification | Not performed |
-| Source defects found | 3 |
-| Source defects coded in corrective PR | 3 |
+| Source defects found | 4 (3 static + 1 CI) |
+| Source defects coded in corrective PR | 4 |
 | Source corrections release-verified | Pending exact-head CI |
 | Remaining external blockers | File 06 integration / staging-runtime and deployment evidence |
 
