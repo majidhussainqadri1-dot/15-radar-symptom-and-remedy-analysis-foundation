@@ -38,6 +38,10 @@ $assert(array_key_exists('next_cursor', $urgent) && $urgent['next_cursor'] === n
 $assert(($urgent['emergency_diversion'] ?? false) === true, 'Emergency redirect must be explicit.');
 $assert(($urgent['source'] ?? '') === 'file15_urgent_care_diversion', 'Emergency query must exit before a provider is queried.');
 
+$urduEmergency = $radar->search(['keyword' => 'سینے میں درد', 'filters' => []]);
+$assert(is_array($urduEmergency) && ($urduEmergency['emergency_diversion'] ?? false) === true, 'Urdu chest-pain warning must divert before remedies.');
+$assert(is_array($urduEmergency) && ($urduEmergency['results'] ?? []) === [], 'Urdu emergency search must not return remedy suggestions.');
+
 $adversarial = RSR_Four_Plan_Compliance::enhance_search_result([
     'results' => [
         ['remedy_public_id' => 'fake', 'match_count' => 999, 'mappings' => []],
