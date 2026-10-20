@@ -4,7 +4,7 @@ Tags: homeopathy, research, radar, trends, remedies, analytics
 Requires at least: 6.5
 Tested up to: 7.0.1
 Requires PHP: 8.1
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,10 @@ No. Automated and manual ingestion creates or refreshes a draft. Separate analys
 No. Only public approved Radar results and published/corrected public reports are exposed through integration contracts.
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix public trend reports pagination to use a complete, validated sort-time/ID cursor; supports legacy cursors.
+* Restore four-plan compliance testing as a required build gate.
 
 = 1.2.0 =
 * Forty-round review release with atomic inbox/rate limits, key rotation, bounded input processing, stricter provenance, transactional report corrections, and expanded regression evidence.
