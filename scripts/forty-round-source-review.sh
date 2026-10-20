@@ -13,6 +13,7 @@ for round in $(seq 1 40); do
   if ! php "$ROOT/tests/review-forty-focused.php" "$round" >> "$LOG" 2>&1 ||
      ! php "$ROOT/tests/run.php" >> "$LOG" 2>&1 ||
      ! php "$ROOT/tests/clinical-boundary-regression.php" >> "$LOG" 2>&1 ||
+     ! php "$ROOT/tests/html-input-regression.php" >> "$LOG" 2>&1 ||
      ! php "$ROOT/tests/static-regression.php" >> "$LOG" 2>&1 ||
      ! php "$ROOT/tests/four-plan-compliance.php" >> "$LOG" 2>&1 ||
      ! php "$ROOT/tests/forty-round-regression.php" >> "$LOG" 2>&1; then

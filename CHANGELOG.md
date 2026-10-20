@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.4 — 2026-10-20 (fourth source-correction review)
+
+- HTML Radar/Compare input parameters no longer coerce nested arrays into `Array`, produce PHP array-conversion warnings, or partially accept mixed malformed remedy IDs.
+- Query shape validation rejects malformed keyword/mode/filter values before invoking local or File 06 retrieval; nested cursors become null.
+- Added seven browser-form safety/legitimate-path assertions, executed during all forty sequential source/regression checks on PHP 8.1, 8.3 and 8.4.
+- No DB schema change (still `1.2.0`); File 06 native bridge, File 26 end-to-end parity, real staging/Live testing and exact deployed code remain unverified.
+
+
 ## 1.2.3 — 2026-10-20
 
 - Strict Radar parameter types and explicit current File 06 eligibility assertions.

@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="$ROOT/15-radar-symptom-and-remedy-analysis-foundation"
 DIST="$ROOT/dist"
-VERSION="1.2.3"
+VERSION="1.2.4"
 ZIP_NAME="15-radar-symptom-and-remedy-analysis-foundation-${VERSION}.zip"
 ZIP_PATH="$DIST/$ZIP_NAME"
 SECOND_ZIP="$DIST/.determinism-second.zip"
@@ -39,6 +39,8 @@ printf 'Running four-plan compliance regression...\n'
 php "$ROOT/tests/four-plan-compliance.php" | tee "$DIST/four-plan-compliance.log"
 printf 'Running red-flag, privacy and provenance regressions...\n'
 php "$ROOT/tests/clinical-boundary-regression.php" | tee "$DIST/clinical-boundary-regression.log"
+printf 'Running HTML parameter safety regression...\n'
+php "$ROOT/tests/html-input-regression.php" | tee "$DIST/html-input-regression.log"
 printf 'Running forty sequential source/test review rounds...\n'
 bash "$ROOT/scripts/forty-round-source-review.sh" "$DIST" | tee "$DIST/third-forty-summary.log"
 FORTY_CHECKS="$(grep -Eo 'PASS [0-9]+ forty-round controls' "$DIST/forty-round-regression.log" | awk '{print $2}')"
@@ -134,7 +136,7 @@ PLUGIN_PHP_COUNT="$(find "$PLUGIN_DIR" -type f -name '*.php' | wc -l | tr -d ' '
 BUILD_UTC="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 cat > "$ROOT/docs/RELEASE-EVIDENCE.md" <<EOF
-# Release Evidence — 1.2.3
+# Release Evidence — 1.2.4
 
 Generated: \`$BUILD_UTC\`
 
