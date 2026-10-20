@@ -145,6 +145,7 @@ trait RSR_Radar_Retrieval_Trait
                 continue;
             }
             $mappings = [];
+            $seen_mapping_evidence = [];
             foreach (array_slice((array)($item['mappings'] ?? []), 0, 50) as $mapping) {
                 if (!is_array($mapping)) {
                     continue;
@@ -161,6 +162,17 @@ trait RSR_Radar_Retrieval_Trait
                 ) {
                     continue;
                 }
+                $evidence_key = hash('sha256', implode('|', [
+                    sanitize_text_field((string)($mapping['mapping_id'] ?? '')),
+                    sanitize_text_field((string)($mapping['source_id'] ?? '')),
+                    $reference,
+                    $license,
+                    $review_date,
+                ]));
+                if (isset($seen_mapping_evidence[$evidence_key])) {
+                    continue;
+                }
+                $seen_mapping_evidence[$evidence_key] = true;
                 $mappings[] = [
                     'mapping_id' => sanitize_text_field((string)($mapping['mapping_id'] ?? '')),
                     'explanation' => sanitize_text_field((string)($mapping['explanation'] ?? '')),
