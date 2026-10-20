@@ -166,6 +166,9 @@ final class RSR_Domain
         $known = self::dimensions();
         $filters = [];
         $total = 0;
+        if (isset($input['filters']) && !is_array($input['filters'])) {
+            $errors[] = 'invalid_filters_type';
+        }
         $raw_filters = isset($input['filters']) && is_array($input['filters']) ? $input['filters'] : [];
 
         foreach ($raw_filters as $dimension => $values) {
