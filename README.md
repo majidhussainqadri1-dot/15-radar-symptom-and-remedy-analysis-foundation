@@ -20,7 +20,7 @@ Fixes out-of-order public trend pagination and restores the four-plan compliance
 
 ## Current correction 1.2.2
 
-Medical red flags short-circuit before remedy lookup; health-query privacy covers both POST and GET; legacy File 06 eligibility and external mapped evidence fail closed unless verified. Forty sequential automated source regression rounds are required in CI. This is repository evidence, not deployed acceptance. Schema remains `1.2.0`.
+Medical red flags short-circuit before remedy lookup; health-query privacy covers both POST and GET; legacy File 06 eligibility and external mapped evidence fail closed unless verified. Forty sequential automated source regression rounds are required in CI. The forty-round audit and cross-file blockers are recorded in `docs/SECOND-40-SEQUENTIAL-SOURCE-REVIEW-2026-10-20.md`. This is repository evidence, not deployed acceptance. Schema remains `1.2.0`.
 
 ## Verification
 
