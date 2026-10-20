@@ -64,3 +64,13 @@ Each consumed event requires a stable event ID and is deduplicated. Encyclopedia
 - `sabri_file15_public_reports_v1` — public reports only.
 
 No contract exports private studies.
+
+## Medical red-flag and external-evidence hardening (v1.2.2)
+
+A validated emergency-indicative Radar query is diverted **before** invoking either the local mapping engine or a File 06 search adapter. The public search response returns `results=[]`, `next_cursor=null`, `emergency_diversion=true` and a qualified local emergency-care notice; it must not provide alternative self-treatment recommendations. Public adapters receive defense-in-depth scrubbing if they emit results for an urgent query.
+
+External search candidates are accepted only with eligible current File 06 remedy references and valid, nonfuture, source-linked, deduplicated mapping evidence. Their displayed evidence count is determined from accepted mapping entries, not provider-claimed ranking counts.
+
+The prior `HE_Content` legacy compatibility path now requires a per-remedy explicit `rsr_file06_legacy_remedy_eligible` approval from an owner-controlled adapter; default false. A `published` WordPress post alone does not satisfy canonical clinical eligibility.
+
+File 06's independent branch currently emits a `sabri_domain_event` envelope rather than File 15's `sabri_platform_event_v1`; do not claim bridge parity or implement implicit object-ID inference. See File 06 blocker issue #10.

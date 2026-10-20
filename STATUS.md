@@ -1,4 +1,4 @@
-# File 15 Status — v1.2.1 corrective candidate
+# File 15 Status — v1.2.2 source/QA corrective candidate
 
 | Layer | Status |
 |---|---|
@@ -17,3 +17,6 @@ The repository has zero known unresolved blocker/critical source defect after th
 
 
 2026-10-20 follow-up: 40 focused static probes identified 3 source/test defects (legacy four-plan version assertion, omitted build gate, inconsistent report pagination). Candidate corrections are on a dedicated branch; Hostinger staging and File 06/26 integration remain unverified.
+
+
+2026-10-20 second pass: medical safety, medical-query privacy, source/eligibility proof, forty sequential source-review gate are under exact-head QA. No live/staging claims.

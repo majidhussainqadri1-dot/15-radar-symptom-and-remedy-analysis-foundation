@@ -71,10 +71,10 @@ $adminJs = $files['assets/js/rsr-admin.js'] ?? '';
 $readme = $files['readme.txt'] ?? '';
 
 $assert(is_dir($plugin), 'Canonical plugin directory is missing.');
-$assert(str_contains($main, 'Version: 1.2.1'), 'Plugin header version must be 1.2.1.');
-$assert(str_contains($main, "define('RSR_VERSION', '1.2.1')"), 'Runtime version must be 1.2.1.');
+$assert(str_contains($main, 'Version: 1.2.2'), 'Plugin header version must be 1.2.2.');
+$assert(str_contains($main, "define('RSR_VERSION', '1.2.2')"), 'Runtime version must be 1.2.2.');
 $assert(str_contains($main, "define('RSR_SCHEMA_VERSION', '1.2.0')"), 'Schema version must be 1.2.0.');
-$assert(str_contains($readme, 'Stable tag: 1.2.1'), 'Stable tag must be 1.2.1.');
+$assert(str_contains($readme, 'Stable tag: 1.2.2'), 'Stable tag must be 1.2.2.');
 $assert(str_contains($main, "class-rsr-hardening.php"), 'Hardening class must be loaded.');
 $assert(count($phpFiles) >= 30, 'Expected at least thirty plugin PHP files.');
 $assert(count($jsFiles) === 2, 'Expected exactly public and operations JavaScript bundles.');
@@ -148,7 +148,7 @@ $assert(str_contains($trendTemplate, 'review_date') && str_contains($trendTempla
 $assert(str_contains($capabilities, 'APPROVE_REPORTS'), 'Separate approval capability is missing.');
 $assert(str_contains($manageTemplate, 'can_approve_reports'), 'Separate Approve UI action is missing.');
 $assert(str_contains($routes, "'can_approve_reports'"), 'Route view lacks approval capability.');
-$assert(str_contains($routes, "RSR_Hardening::rate_limit('html_' . $route"), 'Page-level Radar/Compare rate limit is missing.');
+$assert(str_contains($routes, 'RSR_Hardening::rate_limit(\'html_\' . $route'), 'Page-level Radar/Compare rate limit is missing.');
 $assert(str_contains($routes, "'schema' => ['dimensions' => RSR_Domain::dimensions(), 'values' => []]") && str_contains($routes, 'if ($route === \'radar\')') && str_contains($routes, '$base[\'schema\'] = $this->radar->schema()'), 'Lazy schema loading is missing.');
 $assert(str_contains($radarTemplate, 'method="post"') && str_contains($compareTemplate, 'method="post"'), 'Health research forms must use POST.');
 $assert(str_contains($routes, 'nocache_headers') && str_contains($routes, 'Referrer-Policy'), 'Health-query page privacy headers are incomplete.');

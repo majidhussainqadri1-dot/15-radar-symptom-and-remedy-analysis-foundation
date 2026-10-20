@@ -69,6 +69,24 @@ trait RSR_Radar_Public_Trait
             );
         }
         $query = $validated['query'];
+        // AJ-22: an urgent red-flag query must never invoke the remedy
+        // search adapter or return remedy suggestions, including HTML,
+        // REST, and public File 26 read-contract consumers.
+        $urgent = RSR_Four_Plan_Compliance::safety_escalation($query);
+        if ($urgent !== null) {
+            return [
+                'query' => $query,
+                'explanation' => RSR_Domain::explain_query($query),
+                'results' => [],
+                'next_cursor' => null,
+                'source' => 'file15_urgent_care_diversion',
+                'safety' => self::safety_notice(),
+                'safety_escalation' => $urgent,
+                'emergency_diversion' => true,
+                'privacy' => ['shared_cache_allowed' => false],
+                'generated_at' => gmdate('c'),
+            ];
+        }
         $limit = max(1, min(100, $limit));
         $decoded_cursor = $cursor ? base64_decode($cursor, true) : false;
         $cursor_key = is_string($decoded_cursor) && preg_match('/^[A-Za-z0-9._:-]{1,191}$/', $decoded_cursor) ? $decoded_cursor : '';

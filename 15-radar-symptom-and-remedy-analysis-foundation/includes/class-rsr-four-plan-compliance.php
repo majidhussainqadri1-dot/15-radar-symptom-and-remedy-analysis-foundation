@@ -184,7 +184,7 @@ final class RSR_Four_Plan_Compliance
     public function protect_query_routes(): void
     {
         $route = sanitize_key((string)get_query_var('rsr_route'));
-        $has_research_query = ($route === 'radar' && (isset($_GET['keyword'], $_POST['keyword']) || self::has_filter_query()))
+        $has_research_query = ($route === 'radar' && (isset($_GET['keyword']) || isset($_POST['keyword']) || self::has_filter_query()))
             || ($route === 'compare' && (isset($_GET['remedies']) || isset($_POST['remedies'])));
 
         if (!$has_research_query) {
@@ -203,7 +203,7 @@ final class RSR_Four_Plan_Compliance
     public function protect_query_robots(array $robots): array
     {
         $route = sanitize_key((string)get_query_var('rsr_route'));
-        $has_research_query = ($route === 'radar' && (isset($_GET['keyword'], $_POST['keyword']) || self::has_filter_query()))
+        $has_research_query = ($route === 'radar' && (isset($_GET['keyword']) || isset($_POST['keyword']) || self::has_filter_query()))
             || ($route === 'compare' && (isset($_GET['remedies']) || isset($_POST['remedies'])));
         if ($has_research_query) {
             $robots['noindex'] = true;
@@ -226,6 +226,16 @@ final class RSR_Four_Plan_Compliance
             $query = $result['query'];
         }
 
+        $escalation = self::safety_escalation($query);
+        if ($escalation !== null) {
+            // Defense in depth for results produced by third-party adapters:
+            // public search must never offer remedies for emergency signals.
+            $result['results'] = [];
+            $result['next_cursor'] = null;
+            $result['safety_escalation'] = $escalation;
+            $result['emergency_diversion'] = true;
+            unset($result['zero_result_recovery']);
+        }
         $items = [];
         foreach ((array)($result['results'] ?? []) as $item) {
             if (!is_array($item)) {
@@ -277,12 +287,8 @@ final class RSR_Four_Plan_Compliance
             'shared_cache_allowed' => false,
         ];
 
-        if ($items === []) {
+        if ($items === [] && $escalation === null) {
             $result['zero_result_recovery'] = self::zero_result_recovery($query);
-        }
-        $escalation = self::safety_escalation($query);
-        if ($escalation !== null) {
-            $result['safety_escalation'] = $escalation;
         }
         return $result;
     }

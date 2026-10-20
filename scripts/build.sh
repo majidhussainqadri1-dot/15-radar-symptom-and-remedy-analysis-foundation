@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="$ROOT/15-radar-symptom-and-remedy-analysis-foundation"
 DIST="$ROOT/dist"
-VERSION="1.2.1"
+VERSION="1.2.2"
 ZIP_NAME="15-radar-symptom-and-remedy-analysis-foundation-${VERSION}.zip"
 ZIP_PATH="$DIST/$ZIP_NAME"
 SECOND_ZIP="$DIST/.determinism-second.zip"
@@ -37,6 +37,10 @@ printf 'Running forty-round regression tests...\n'
 php "$ROOT/tests/forty-round-regression.php" | tee "$DIST/forty-round-regression.log"
 printf 'Running four-plan compliance regression...\n'
 php "$ROOT/tests/four-plan-compliance.php" | tee "$DIST/four-plan-compliance.log"
+printf 'Running red-flag, privacy and provenance regressions...\n'
+php "$ROOT/tests/clinical-boundary-regression.php" | tee "$DIST/clinical-boundary-regression.log"
+printf 'Running forty sequential source/test review rounds...\n'
+bash "$ROOT/scripts/forty-round-source-review.sh" "$DIST" | tee "$DIST/second-forty-summary.log"
 FORTY_CHECKS="$(grep -Eo 'PASS [0-9]+ forty-round controls' "$DIST/forty-round-regression.log" | awk '{print $2}')"
 
 printf 'Generating source manifest...\n'
@@ -130,7 +134,7 @@ PLUGIN_PHP_COUNT="$(find "$PLUGIN_DIR" -type f -name '*.php' | wc -l | tr -d ' '
 BUILD_UTC="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 cat > "$ROOT/docs/RELEASE-EVIDENCE.md" <<EOF
-# Release Evidence — 1.2.1
+# Release Evidence — 1.2.2
 
 Generated: \`$BUILD_UTC\`
 
@@ -159,7 +163,11 @@ Generated: \`$BUILD_UTC\`
 
 Baseline version 1.2.0 added atomic schema upgrade verification, durable event inbox and row-level outbox leases, database-atomic rate limiting, production-grade encryption-key requirements and rotation, decrypt-failure overwrite protection, bounded PII/log/provider ingestion, stricter source/licence/provenance gates, transactional publish/correct/retract operations, approval separation, stable pagination, current eligibility revalidation, POST health-query transport, lazy schema loading and expanded regression evidence.
 
-Version 1.2.1 repairs the public trend report sort/cursor mismatch, tests backward-compatible cursor decoding, and restores four-plan compliance to the mandatory build gate. The database schema remains 1.2.0. These candidate fixes do not constitute staging/live verification.\n\n## Evidence qualification
+Baseline version 1.2.1 repaired the public trend report sort/cursor mismatch, tests backward-compatible cursor decoding, and restores four-plan compliance to the mandatory build gate. The database schema remains 1.2.0. These candidate fixes do not constitute staging/live verification.\n\n## Second corrective audit
+
+Version 1.2.2 adds urgent-care diversion before radar provider lookup, single-keyword research privacy, verified File 06 legacy eligibility, source-grounded external mappings, and forty sequential post-correction source/test review passes. These are automated repository checks, not forty live clinical workflows. Schema remains 1.2.0.
+
+## Evidence qualification
 
 This document establishes source implementation, deterministic package integrity and automated checks in the available build environment. It does not establish Hostinger staging, real companion-plugin/provider contracts, measured browser/accessibility/performance acceptance, backup/restore rehearsal, production deployment or operational service. Those remain explicit external gates.
 EOF

@@ -4,7 +4,7 @@ WordPress implementation for File 15 of the Sabri Social Homeopathy Platform.
 
 ## Release
 
-- Plugin: `1.2.1`
+- Plugin: `1.2.2`
 - Schema: `1.2.0`
 - PHP: `8.1+`
 - Target integration baseline: WordPress `7.0.1`, PHP `8.3`
@@ -17,6 +17,10 @@ File 15 owns governed Radar dimensions/mappings, up-to-three remedy comparison, 
 ## Correction in 1.2.1
 
 Fixes out-of-order public trend pagination and restores the four-plan compliance regression to the mandatory build suite. The schema remains `1.2.0`. No staging or live acceptance is implied.
+
+## Current correction 1.2.2
+
+Medical red flags short-circuit before remedy lookup; health-query privacy covers both POST and GET; legacy File 06 eligibility and external mapped evidence fail closed unless verified. Forty sequential automated source regression rounds are required in CI. The forty-round audit and cross-file blockers are recorded in `docs/SECOND-40-SEQUENTIAL-SOURCE-REVIEW-2026-10-20.md`. This is repository evidence, not deployed acceptance. Schema remains `1.2.0`.
 
 ## Verification
 
