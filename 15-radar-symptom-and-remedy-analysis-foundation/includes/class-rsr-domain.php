@@ -142,13 +142,23 @@ final class RSR_Domain
     public static function validate_radar_query(array $input): array
     {
         $errors = [];
-        $mode = strtoupper((string)($input['mode'] ?? 'AND'));
+        $mode_input = $input['mode'] ?? 'AND';
+        if (!is_string($mode_input)) {
+            $errors[] = 'invalid_mode_type';
+            $mode_input = 'AND';
+        }
+        $mode = strtoupper($mode_input);
         if (!in_array($mode, ['AND', 'OR'], true)) {
             $errors[] = 'invalid_mode';
             $mode = 'AND';
         }
 
-        $keyword = trim((string)($input['keyword'] ?? ''));
+        $keyword_input = $input['keyword'] ?? '';
+        if (!is_string($keyword_input)) {
+            $errors[] = 'invalid_keyword_type';
+            $keyword_input = '';
+        }
+        $keyword = trim($keyword_input);
         if (self::length($keyword) > self::MAX_QUERY_TEXT_LENGTH) {
             $errors[] = 'keyword_too_long';
         }
@@ -156,6 +166,9 @@ final class RSR_Domain
         $known = self::dimensions();
         $filters = [];
         $total = 0;
+        if (isset($input['filters']) && !is_array($input['filters'])) {
+            $errors[] = 'invalid_filters_type';
+        }
         $raw_filters = isset($input['filters']) && is_array($input['filters']) ? $input['filters'] : [];
 
         foreach ($raw_filters as $dimension => $values) {
@@ -168,6 +181,10 @@ final class RSR_Domain
             $values = is_array($values) ? $values : [$values];
             $normalized = [];
             foreach ($values as $value) {
+                if (!is_scalar($value)) {
+                    $errors[] = 'invalid_filter_value_type:' . $dimension;
+                    continue;
+                }
                 $value = trim((string)$value);
                 if ($value === '') {
                     continue;
@@ -228,6 +245,10 @@ final class RSR_Domain
         $normalized = [];
         $errors = [];
         foreach ($ids as $id) {
+            if (!is_scalar($id) || is_bool($id)) {
+                $errors[] = 'invalid_remedy_id';
+                continue;
+            }
             $id = trim((string)$id);
             if ($id === '') {
                 continue;

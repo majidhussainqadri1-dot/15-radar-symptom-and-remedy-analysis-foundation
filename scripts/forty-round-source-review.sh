@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_DIR="${1:-$ROOT/dist}"
 mkdir -p "$LOG_DIR"
-LOG="$LOG_DIR/second-forty-rounds.log"
+LOG="$LOG_DIR/third-forty-rounds.log"
 : > "$LOG"
 for round in $(seq 1 40); do
   label="$(printf '%02d' "$round")"

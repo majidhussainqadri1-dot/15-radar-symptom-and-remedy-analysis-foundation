@@ -1,4 +1,4 @@
-# File 15 Status — v1.2.2 source/QA corrective candidate
+# File 15 Status — v1.2.3 source/QA corrective candidate
 
 | Layer | Status |
 |---|---|
@@ -20,3 +20,6 @@ The repository has zero known unresolved blocker/critical source defect after th
 
 
 2026-10-20 second pass: medical safety, medical-query privacy, source/eligibility proof, forty sequential source-review gate are under exact-head QA. No live/staging claims.
+
+
+2026-10-20 third audit: three new source issues corrected in branch; forty focused sequential CI reviews required. Staging, exact installed plugin, live database/migration state and File 06/26 integration remain unverified; see docs/THIRD-40-SOURCE-AND-CROSS-FILE-AUDIT-2026-10-20.md.

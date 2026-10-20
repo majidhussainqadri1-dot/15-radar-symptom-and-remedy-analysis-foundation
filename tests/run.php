@@ -48,6 +48,14 @@ $assert($four['valid'] === false && in_array('maximum_three_remedies', $four['er
 $bad = RSR_Domain::validate_comparison_ids(['valid', '<script>']);
 $assert($bad['valid'] === false && in_array('invalid_remedy_id', $bad['errors'], true), 'Malformed non-empty remedy ID must fail rather than disappear.');
 
+$nestedQuery = RSR_Domain::validate_radar_query(['keyword' => 'burning', 'filters' => ['location' => [['throat']]]]);
+$assert($nestedQuery['valid'] === false && in_array('invalid_filter_value_type:location', $nestedQuery['errors'], true), 'Nested filter values must fail validation.');
+$arrayKeyword = RSR_Domain::validate_radar_query(['keyword' => ['burning']]);
+$assert($arrayKeyword['valid'] === false && in_array('invalid_keyword_type', $arrayKeyword['errors'], true), 'Structured keyword must fail validation.');
+$arrayMode = RSR_Domain::validate_radar_query(['keyword' => 'burning', 'mode' => ['OR']]);
+$assert($arrayMode['valid'] === false && in_array('invalid_mode_type', $arrayMode['errors'], true), 'Structured match mode must fail validation.');
+$arrayRemedyIds = RSR_Domain::validate_comparison_ids([['nested' => 'invalid']]);
+$assert(!$arrayRemedyIds['valid'], 'Nested remedy IDs must not pass validation.');
 $score = RSR_Domain::score_trend([
     'volume' => INF,
     'baseline' => NAN,
