@@ -313,7 +313,7 @@ $checks = json_decode(<<<'JSON'
   ],
   [
     "File 16 approved retrieval boundary",
-    "docs/ARCHITECTURE.md",
+    "../docs/ARCHITECTURE.md",
     [
       "File 16",
       "approved public"
@@ -321,7 +321,7 @@ $checks = json_decode(<<<'JSON'
   ],
   [
     "File 24 assurance boundary",
-    "docs/ARCHITECTURE.md",
+    "../docs/ARCHITECTURE.md",
     [
       "File 24",
       "security/privacy"
