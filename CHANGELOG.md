@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.2 — 2026-10-20 (second corrective audit)
+
+- Urgent red flags now suppress all Radar recommendations/cursors before File 06 lookup, including defensive public-contract decoration.
+- Restored proper privacy/noindex protection for single-keyword POST/GET health searches.
+- External Radar evidence must be date-valid, source-linked, nonempty and deduplicated; provider-supplied evidence counts are not blindly trusted.
+- Legacy File 06 remedy bridge requires explicit native-owner per-remedy eligibility approval, default deny.
+- Added medical boundary regression suite and forty sequential automated source/test review rounds.
+- Database schema is unchanged at 1.2.0; staging, deployed artifact and integration runtime remain unverified.
+
 ## 1.2.1 — 2026-10-20 (corrective candidate)
 
 - Fixed public trend report pagination to keyset on publication-time/ID tuple rather than ID alone; accepts prior ID-only cursors.
