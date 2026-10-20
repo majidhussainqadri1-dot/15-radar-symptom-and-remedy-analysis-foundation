@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 — 2026-10-20 (corrective candidate)
+
+- Fixed public trend report pagination to keyset on publication-time/ID tuple rather than ID alone; accepts prior ID-only cursors.
+- Restored the four-plan regression gate in the release builder and updated stale version assertions.
+- Added regression checks for cursor parsing, invalid dates, upgrade compatibility and SQL ordering.
+- This is source-review candidate evidence; real staging, cross-file contracts and deployment parity remain separate gates.
+
 ## 1.0.0 — 2026-08-06
 
 - Replaced the incomplete 0.1.x foundation with the canonical File 15 implementation.
