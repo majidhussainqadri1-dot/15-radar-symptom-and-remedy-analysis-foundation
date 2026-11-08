@@ -154,6 +154,7 @@ final class RSR_Plugin
                 'EncyclopediaEntryPublished.v1',
                 'EncyclopediaEntryCorrected.v1',
                 'EncyclopediaEntryRetracted.v1',
+                'KnowledgeConceptMerged.v1',
                 'DoctorSuspended.v1',
                 'ProviderQuotaChanged.v1',
             ],
