@@ -41,6 +41,8 @@ printf 'Running red-flag, privacy and provenance regressions...\n'
 php "$ROOT/tests/clinical-boundary-regression.php" | tee "$DIST/clinical-boundary-regression.log"
 printf 'Running HTML parameter safety regression...\n'
 php "$ROOT/tests/html-input-regression.php" | tee "$DIST/html-input-regression.log"
+printf 'Running File 06 merge-consumer contract regression...\n'
+php "$ROOT/tests/file06-merge-consumer.php" | tee "$DIST/file06-merge-consumer.log"
 printf 'Running forty sequential source/test review rounds...\n'
 bash "$ROOT/scripts/forty-round-source-review.sh" "$DIST" | tee "$DIST/third-forty-summary.log"
 FORTY_CHECKS="$(grep -Eo 'PASS [0-9]+ forty-round controls' "$DIST/forty-round-regression.log" | awk '{print $2}')"
