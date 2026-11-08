@@ -189,6 +189,7 @@ final class RSR_Events
             'EncyclopediaEntryPublished.v1',
             'EncyclopediaEntryCorrected.v1',
             'EncyclopediaEntryRetracted.v1',
+            'KnowledgeConceptMerged.v1',
             'DoctorSuspended.v1',
             'ProviderQuotaChanged.v1',
         ];
@@ -200,7 +201,16 @@ final class RSR_Events
             return new WP_Error('rsr_event_id_required', __('A stable event ID is required.', RSR_TEXT_DOMAIN), ['status' => 400]);
         }
         $result = ['event_id' => $event_id];
-        if (str_starts_with($event_name, 'EncyclopediaEntry')) {
+        if ($event_name === 'KnowledgeConceptMerged.v1') {
+            $source = sanitize_text_field((string)($payload['source_remedy_public_id'] ?? ''));
+            $target = sanitize_text_field((string)($payload['target_remedy_public_id'] ?? ''));
+            $uuid = '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
+            if (preg_match($uuid, $source) !== 1 || preg_match($uuid, $target) !== 1 || $source === $target) {
+                return new WP_Error('rsr_merge_ids_invalid', __('A distinct canonical source and target remedy ID are required.', RSR_TEXT_DOMAIN), ['status' => 422]);
+            }
+            $result['source_remedy_public_id'] = $source;
+            $result['target_remedy_public_id'] = $target;
+        } elseif (str_starts_with($event_name, 'EncyclopediaEntry')) {
             $remedy = sanitize_text_field((string)($payload['remedy_public_id'] ?? $payload['entry_public_id'] ?? ''));
             if ($remedy === '') {
                 return new WP_Error('rsr_event_remedy_required', __('A canonical remedy identifier is required.', RSR_TEXT_DOMAIN), ['status' => 422]);
@@ -227,14 +237,34 @@ final class RSR_Events
     private static function apply_incoming(string $event_name, array $data): void
     {
         global $wpdb;
+        if ($event_name === 'KnowledgeConceptMerged.v1') {
+            // Never transfer clinical evidence automatically to the new concept.
+            // Require a reviewer to approve any mapping after a canonical merge.
+            $source = (string)$data['source_remedy_public_id'];
+            $target = (string)$data['target_remedy_public_id'];
+            $affected = $wpdb->query($wpdb->prepare(
+                'UPDATE ' . RSR_DB::table('mappings') . " SET status='review_required',version=version+1,updated_at=%s WHERE remedy_public_id=%s AND status<>'review_required'",
+                current_time('mysql', true),
+                $source
+            ));
+            if ($affected === false) {
+                throw new RuntimeException('remedy_merge_invalidation_failed');
+            }
+            self::invalidate_comparison_cache($source);
+            do_action('rsr_remedy_merge_review_required_v1', $source, $target, (string)$data['event_id']);
+            return;
+        }
         if (str_starts_with($event_name, 'EncyclopediaEntry')) {
             $remedy = (string)$data['remedy_public_id'];
             if ($event_name !== 'EncyclopediaEntryPublished.v1') {
-                $wpdb->query($wpdb->prepare(
-                    'UPDATE ' . RSR_DB::table('mappings') . " SET status='review_required',version=version+1,updated_at=%s WHERE remedy_public_id=%s",
+                $affected = $wpdb->query($wpdb->prepare(
+                    'UPDATE ' . RSR_DB::table('mappings') . " SET status='review_required',version=version+1,updated_at=%s WHERE remedy_public_id=%s AND status<>'review_required'",
                     current_time('mysql', true),
                     $remedy
                 ));
+                if ($affected === false) {
+                    throw new RuntimeException('remedy_mapping_invalidation_failed');
+                }
             }
             self::invalidate_comparison_cache($remedy);
             return;

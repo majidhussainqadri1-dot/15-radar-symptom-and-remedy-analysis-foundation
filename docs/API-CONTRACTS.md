@@ -74,3 +74,14 @@ External search candidates are accepted only with eligible current File 06 remed
 The prior `HE_Content` legacy compatibility path now requires a per-remedy explicit `rsr_file06_legacy_remedy_eligible` approval from an owner-controlled adapter; default false. A `published` WordPress post alone does not satisfy canonical clinical eligibility.
 
 File 06's independent branch currently emits a `sabri_domain_event` envelope rather than File 15's `sabri_platform_event_v1`; do not claim bridge parity or implement implicit object-ID inference. See File 06 blocker issue #10.
+
+
+## File 06 canonical bridge correction — source candidate (2026-11-08)
+
+File 15 accepts `KnowledgeConceptMerged.v1` from a proven File 06 outbox source with `event_id`, `source_remedy_public_id` and `target_remedy_public_id` UUIDs. It marks the **old source remedy** mapping `review_required`, invalidates the comparison cache and emits a restricted review-needed signal. It **does not** automatically transfer or reclassify mapping evidence to the merged target. Invalid identifiers fail closed.
+
+`EncyclopediaEntryCorrected.v1` and `EncyclopediaEntryRetracted.v1` now require the mapping update to succeed before acknowledging the event. Retry does not repeatedly increment a mapping that is already `review_required`. Existing File 15 durable inbox deduplicates by source event ID/hash; File 06 must send the original persisted UUID.
+
+Canonical read filter `rsr_file06_get_remedies` must return only `published=true`, `eligible=true`, current safely reviewed and source-linked File 06 remedy objects. A public WordPress post or a text-search result cannot substitute for this contract. `rsr_file06_search` remains optional: File 15's governed mapping engine is the safe fallback.
+
+**Acceptance remains pending:** the updated File 06 candidate must be approved together with this File 15 candidate. Test actual File 06/15/26 installed versions and schema, new/backfilled mappings, duplicate/delayed/retracted/merged events, cache/visibility/denial, emergency diversion, staging restore and rollback. Neither repository source nor green CI certifies a deployed integration.
