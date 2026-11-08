@@ -257,11 +257,14 @@ final class RSR_Events
         if (str_starts_with($event_name, 'EncyclopediaEntry')) {
             $remedy = (string)$data['remedy_public_id'];
             if ($event_name !== 'EncyclopediaEntryPublished.v1') {
-                $wpdb->query($wpdb->prepare(
-                    'UPDATE ' . RSR_DB::table('mappings') . " SET status='review_required',version=version+1,updated_at=%s WHERE remedy_public_id=%s",
+                $affected = $wpdb->query($wpdb->prepare(
+                    'UPDATE ' . RSR_DB::table('mappings') . " SET status='review_required',version=version+1,updated_at=%s WHERE remedy_public_id=%s AND status<>'review_required'",
                     current_time('mysql', true),
                     $remedy
                 ));
+                if ($affected === false) {
+                    throw new RuntimeException('remedy_mapping_invalidation_failed');
+                }
             }
             self::invalidate_comparison_cache($remedy);
             return;
