@@ -49,12 +49,16 @@ $rsr_files = [
     'includes/class-rsr-cli.php',
     'includes/class-rsr-activator.php',
     'includes/class-rsr-plugin.php',
+    'includes/class-rsr-file26-connector.php',
 ];
 
 foreach ($rsr_files as $rsr_file) {
     require_once RSR_DIR . $rsr_file;
 }
 unset($rsr_file, $rsr_files);
+
+// Owner publishes only aggregated public trends; private doctor studies remain excluded.
+RSR_File26_Connector::register();
 
 register_activation_hook(RSR_FILE, [RSR_Activator::class, 'activate']);
 register_deactivation_hook(RSR_FILE, [RSR_Activator::class, 'deactivate']);
