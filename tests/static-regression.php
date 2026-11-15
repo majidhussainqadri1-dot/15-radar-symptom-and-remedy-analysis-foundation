@@ -119,7 +119,7 @@ $assert(str_contains($domain, 'normalize_source_signal_type'), 'Signal taxonomy 
 $assert(str_contains($db, "signal_type varchar(32) NOT NULL DEFAULT 'source_activity'"), 'Versioned source signal column is missing.');
 $assert(str_contains($db, 'SHOW COLUMNS FROM'), 'Signal column migration must be checked before schema version commit.');
 $assert(str_contains($trends, '$topic_group_key = $signal_type'), 'Unlike sources must not be grouped into one trend topic.');
-$assert(str_contains($trends, "'signal_type' => $signal_type"), 'Public trend classifications must carry their source signal type.');
+$assert(str_contains($trends, "'signal_type' => " . '$signal_type'), 'Public trend classifications must carry their source signal type.');
 $assert(str_contains($adminJs, 'form.elements.signal_type.value'), 'Signal taxonomy must be preserved by the UI.');
 $assert(str_contains($manageTemplate, 'name="signal_type"'), 'Source editor must explicitly label activity signals.');
 $assert(str_contains($domain, 'invalid_remedy_id'), 'Malformed remedy identifier error is missing.');
