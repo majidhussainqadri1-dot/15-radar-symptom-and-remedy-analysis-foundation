@@ -28,12 +28,13 @@ get_header();
             </div>
             <div class="rsr-table-wrap">
                 <table class="rsr-table">
-                    <thead><tr><th><?php esc_html_e('Source', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Provider', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('License', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Status', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Last success', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Actions', RSR_TEXT_DOMAIN); ?></th></tr></thead>
+                    <thead><tr><th><?php esc_html_e('Source', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Provider', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Signal type', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('License', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Status', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Last success', RSR_TEXT_DOMAIN); ?></th><th><?php esc_html_e('Actions', RSR_TEXT_DOMAIN); ?></th></tr></thead>
                     <tbody data-rsr-source-list>
                         <?php foreach ((array)$view['sources'] as $source) : ?>
                             <tr data-source='<?php echo esc_attr(wp_json_encode($source)); ?>'>
                                 <td><strong><?php echo esc_html((string)$source['name']); ?></strong><br><small><?php echo esc_html((string)$source['dataset']); ?></small></td>
                                 <td><?php echo esc_html((string)$source['provider_key']); ?></td>
+                                <td><?php echo esc_html((string)($source['signal_type'] ?? 'source_activity')); ?></td>
                                 <td><?php echo esc_html((string)$source['license_code']); ?></td>
                                 <td><span class="rsr-status"><?php echo esc_html((string)$source['status']); ?></span></td>
                                 <td><?php echo esc_html((string)($source['last_success_at'] ?? '—')); ?></td>
@@ -55,6 +56,7 @@ get_header();
                         <input type="hidden" name="public_id"><input type="hidden" name="version" value="0">
                         <div class="rsr-field"><label><?php esc_html_e('Name', RSR_TEXT_DOMAIN); ?><input name="name" required maxlength="191"></label></div>
                         <div class="rsr-field"><label><?php esc_html_e('Dataset', RSR_TEXT_DOMAIN); ?><input name="dataset" required maxlength="191"></label></div>
+                        <div class="rsr-field"><label><?php esc_html_e('Signal type (not prevalence)', RSR_TEXT_DOMAIN); ?><select name="signal_type"><?php foreach (RSR_Domain::source_signal_types() as $signal) : ?><option value="<?php echo esc_attr($signal); ?>"><?php echo esc_html(str_replace('_', ' ', $signal)); ?></option><?php endforeach; ?></select></label></div>
                         <div class="rsr-field"><label><?php esc_html_e('Edition', RSR_TEXT_DOMAIN); ?><input name="edition" maxlength="191"></label></div>
                         <div class="rsr-field"><label><?php esc_html_e('Provider', RSR_TEXT_DOMAIN); ?><select name="provider_key"><?php foreach ((array)$view['providers'] as $key => $provider) : ?><option value="<?php echo esc_attr((string)$key); ?>"><?php echo esc_html((string)$key); ?></option><?php endforeach; ?></select></label></div>
                         <div class="rsr-field"><label><?php esc_html_e('License', RSR_TEXT_DOMAIN); ?><select name="license_code"><?php foreach (RSR_Domain::writable_source_licenses() as $license) : ?><option value="<?php echo esc_attr($license); ?>"><?php echo esc_html($license); ?></option><?php endforeach; ?></select></label></div>

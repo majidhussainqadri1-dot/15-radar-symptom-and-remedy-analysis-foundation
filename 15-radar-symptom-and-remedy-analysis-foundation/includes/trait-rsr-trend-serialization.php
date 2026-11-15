@@ -252,7 +252,7 @@ trait RSR_Trend_Serialization_Trait
     }
 
     /** @param array<int,string> $allowed_source_refs @return array<string, mixed> */
-    private function sanitize_report_results(array $results, array $allowed_source_refs = []): array
+    private function sanitize_report_results(array $results, array $allowed_source_refs = [], array $source_types_by_ref = []): array
     {
         $clean = [];
         foreach (array_slice((array)($results['topics'] ?? []), 0, 100) as $topic) {
@@ -261,6 +261,10 @@ trait RSR_Trend_Serialization_Trait
             }
             $key = sanitize_title((string)($topic['topic_key'] ?? $topic['topic_label'] ?? ''));
             $label = sanitize_text_field((string)($topic['topic_label'] ?? ''));
+            $signal_type = RSR_Domain::normalize_source_signal_type($topic['signal_type'] ?? null);
+            if ($signal_type === null) {
+                continue;
+            }
             $score = RSR_Hardening::finite_float($topic['score'] ?? 0, 0.0, 100.0, null);
             $confidence = RSR_Hardening::finite_float($topic['confidence'] ?? 0, 0.0, 1.0, null);
             $volume = RSR_Hardening::finite_float($topic['volume'] ?? 0, 0.0, RSR_Hardening::MAX_ABSOLUTE_VOLUME, null);
@@ -269,12 +273,17 @@ trait RSR_Trend_Serialization_Trait
             if ($allowed_source_refs !== []) {
                 $refs = array_values(array_intersect($refs, $allowed_source_refs));
             }
+            // Correction reviewers must not misclassify a source as a different signal.
+            $refs = array_values(array_filter($refs, static fn(string $ref): bool =>
+                isset($source_types_by_ref[$ref]) && $source_types_by_ref[$ref] === $signal_type
+            ));
             if ($key === '' || $label === '' || $score === null || $confidence === null || $volume === null || $baseline === null || $refs === []) {
                 continue;
             }
             $clean[] = [
                 'topic_key' => $key,
                 'topic_label' => $label,
+                'signal_type' => $signal_type,
                 'score' => $score,
                 'confidence' => $confidence,
                 'volume' => $volume,
