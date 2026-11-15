@@ -32,10 +32,15 @@ trait RSR_Trend_Source_Ingestion_Trait
         if ($public_id !== null && $public_id !== '' && !array_key_exists('signal_type', $input)) {
             global $wpdb;
             $source_table = RSR_DB::table('sources');
+            $wpdb->last_error = '';
             $existing_signal = $wpdb->get_var($wpdb->prepare("SELECT signal_type FROM {$source_table} WHERE public_id = %s LIMIT 1", $public_id));
-            if (is_string($existing_signal) && $existing_signal !== '') {
-                $input['signal_type'] = $existing_signal;
+            if ($wpdb->last_error !== '') {
+                return new WP_Error('rsr_signal_type_lookup_unavailable', __('Cannot verify the existing source classification; retry after the database is repaired.', RSR_TEXT_DOMAIN), ['status' => 503]);
             }
+            if (!is_string($existing_signal) || $existing_signal === '') {
+                return new WP_Error('rsr_source_not_found', __('Trend source not found.', RSR_TEXT_DOMAIN), ['status' => 404]);
+            }
+            $input['signal_type'] = $existing_signal;
         }
         $validated = $this->validate_source($input);
         if (is_wp_error($validated)) {
@@ -90,8 +95,12 @@ trait RSR_Trend_Source_Ingestion_Trait
             }
             if ((string)($current['signal_type'] ?? 'source_activity') !== $validated['signal_type']) {
                 $observations = RSR_DB::table('observations');
-                $prior = (int)$wpdb->get_var($wpdb->prepare("SELECT id FROM {$observations} WHERE source_id = %d LIMIT 1", (int)$current['id']));
-                if ($prior > 0) {
+                $wpdb->last_error = '';
+                $prior = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$observations} WHERE source_id = %d LIMIT 1", (int)$current['id']));
+                if ($wpdb->last_error !== '') {
+                    return new WP_Error('rsr_signal_type_check_unavailable', __('Cannot verify historical source observations; classification change denied.', RSR_TEXT_DOMAIN), ['status' => 503]);
+                }
+                if ($prior !== null) {
                     return new WP_Error('rsr_signal_type_locked', __('A source with collected observations cannot be reclassified without an audited migration.', RSR_TEXT_DOMAIN), ['status' => 409]);
                 }
             }

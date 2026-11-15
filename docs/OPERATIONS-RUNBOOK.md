@@ -53,3 +53,12 @@ wp rsr upgrade
 ## Backup evidence
 
 Before every staging/production change, record file/database backup IDs, checksums, restore test result, package checksum, source commit, migration dry run, rollback owner and monitoring window.
+
+
+## Source signal classification checks (proposed 1.2.5)
+
+- Confirm plugin runtime 1.2.5 and database version 1.2.1 match the accepted package **after** verified staging upgrade.
+- Read the canonical `rsr_sources.signal_type` and ensure each source is one of source_activity, search_interest or news_interest. Unreviewed epidemiology/surveillance must not enter these ranked activity reports.
+- If `rsr_signal_type_lookup_unavailable` or `rsr_signal_type_check_unavailable` occurs, treat it as database-integrity evidence; **do not** bypass the check or reclassify the source. Freeze DB state, check schema and logs and repair only with tested migration steps.
+- Never relabel a source that has already generated observations without a scoped migration, audit record and correction/retraction of affected reports.
+- A successful repository CI result does not establish deployed column presence or operational acceptance.

@@ -121,6 +121,7 @@ $assert(str_contains($db, 'SHOW COLUMNS FROM'), 'Signal column migration must be
 $assert(str_contains($trends, '$topic_group_key = $signal_type'), 'Unlike sources must not be grouped into one trend topic.');
 $assert(str_contains($trends, "'signal_type' => " . '$signal_type'), 'Public trend classifications must carry their source signal type.');
 $assert(str_contains($adminJs, 'form.elements.signal_type.value'), 'Signal taxonomy must be preserved by the UI.');
+$assert(str_contains($trends, 'rsr_signal_type_check_unavailable') && str_contains($trends, 'rsr_signal_type_lookup_unavailable'), 'Signal governance must fail closed when SQL verification fails.');
 $assert(str_contains($manageTemplate, 'name="signal_type"'), 'Source editor must explicitly label activity signals.');
 $assert(str_contains($domain, 'invalid_remedy_id'), 'Malformed remedy identifier error is missing.');
 $assert(str_contains($domain, 'array_merge($existing, $normalized)'), 'Normalized filter collision merge is missing.');
