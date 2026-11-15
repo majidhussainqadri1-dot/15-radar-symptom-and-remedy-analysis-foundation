@@ -4,7 +4,7 @@ Tags: homeopathy, research, radar, trends, remedies, analytics
 Requires at least: 6.5
 Tested up to: 7.0.1
 Requires PHP: 8.1
-Stable tag: 1.2.4
+Stable tag: 1.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,6 +20,7 @@ This plugin implements the canonical File 15 boundary:
 * Source/license/review-date registry and auditable mappings.
 * Verified-doctor-only private Saved Studies with current suspension/revocation rechecks, PII blocking, authenticated encryption, owner-only access, export, and deletion.
 * Versioned trend-provider registry; the built-in provider accepts reviewed aggregate rows and performs no network calls.
+* Governed source-signal taxonomy distinguishes source activity, search interest and news interest; it does not infer disease prevalence.
 * Idempotent daily, weekly, monthly, and yearly ingestion windows using UTC storage and a declared display time zone.
 * Reproducible normalization, deduplication, source-quality scoring, confidence, freshness, and thresholds.
 * Draft → analyst review → editorial review → approved → published workflow. Ingestion never auto-publishes.

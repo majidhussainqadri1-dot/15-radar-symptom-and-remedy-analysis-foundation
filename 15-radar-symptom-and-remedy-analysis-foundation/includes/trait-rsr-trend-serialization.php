@@ -15,6 +15,10 @@ trait RSR_Trend_Serialization_Trait
         if (!RSR_Provider_Registry::get($provider_key)) {
             return new WP_Error('rsr_provider_missing', __('The trend provider adapter is unavailable.', RSR_TEXT_DOMAIN), ['status' => 400]);
         }
+        $signal_type = RSR_Domain::normalize_source_signal_type($input['signal_type'] ?? 'source_activity');
+        if ($signal_type === null) {
+            return new WP_Error('rsr_signal_type_unapproved', __('Unsupported source signal type; clinical prevalence and surveillance require separately reviewed evidence.', RSR_TEXT_DOMAIN), ['status' => 422]);
+        }
         $name = sanitize_text_field((string)($input['name'] ?? ''));
         $dataset = sanitize_text_field((string)($input['dataset'] ?? ''));
         if ($name === '' || $dataset === '') {
@@ -59,6 +63,7 @@ trait RSR_Trend_Serialization_Trait
             'provider_key' => $provider_key,
             'name' => $name,
             'dataset' => $dataset,
+            'signal_type' => $signal_type,
             'edition' => sanitize_text_field((string)($input['edition'] ?? '')) ?: null,
             'license_code' => $license,
             'review_date' => $review_date,
@@ -83,6 +88,7 @@ trait RSR_Trend_Serialization_Trait
             'provider_key' => (string)($row['provider_key'] ?? ''),
             'name' => (string)($row['name'] ?? ''),
             'dataset' => (string)($row['dataset'] ?? ''),
+            'signal_type' => (string)($row['signal_type'] ?? 'source_activity'),
             'edition' => $row['edition'] ?? null,
             'license_code' => (string)($row['license_code'] ?? ''),
             'review_date' => (string)($row['review_date'] ?? ''),
@@ -246,7 +252,7 @@ trait RSR_Trend_Serialization_Trait
     }
 
     /** @param array<int,string> $allowed_source_refs @return array<string, mixed> */
-    private function sanitize_report_results(array $results, array $allowed_source_refs = []): array
+    private function sanitize_report_results(array $results, array $allowed_source_refs = [], array $source_types_by_ref = []): array
     {
         $clean = [];
         foreach (array_slice((array)($results['topics'] ?? []), 0, 100) as $topic) {
@@ -255,6 +261,10 @@ trait RSR_Trend_Serialization_Trait
             }
             $key = sanitize_title((string)($topic['topic_key'] ?? $topic['topic_label'] ?? ''));
             $label = sanitize_text_field((string)($topic['topic_label'] ?? ''));
+            $signal_type = RSR_Domain::normalize_source_signal_type($topic['signal_type'] ?? null);
+            if ($signal_type === null) {
+                continue;
+            }
             $score = RSR_Hardening::finite_float($topic['score'] ?? 0, 0.0, 100.0, null);
             $confidence = RSR_Hardening::finite_float($topic['confidence'] ?? 0, 0.0, 1.0, null);
             $volume = RSR_Hardening::finite_float($topic['volume'] ?? 0, 0.0, RSR_Hardening::MAX_ABSOLUTE_VOLUME, null);
@@ -263,12 +273,17 @@ trait RSR_Trend_Serialization_Trait
             if ($allowed_source_refs !== []) {
                 $refs = array_values(array_intersect($refs, $allowed_source_refs));
             }
+            // Correction reviewers must not misclassify a source as a different signal.
+            $refs = array_values(array_filter($refs, static fn(string $ref): bool =>
+                isset($source_types_by_ref[$ref]) && $source_types_by_ref[$ref] === $signal_type
+            ));
             if ($key === '' || $label === '' || $score === null || $confidence === null || $volume === null || $baseline === null || $refs === []) {
                 continue;
             }
             $clean[] = [
                 'topic_key' => $key,
                 'topic_label' => $label,
+                'signal_type' => $signal_type,
                 'score' => $score,
                 'confidence' => $confidence,
                 'volume' => $volume,
@@ -277,8 +292,11 @@ trait RSR_Trend_Serialization_Trait
                 'source_refs' => $refs,
             ];
         }
+        $clean = RSR_Domain::select_typed_trend_topics($clean, 100);
         return [
             'method_version' => RSR_Domain::METHOD_VERSION,
+            'signal_taxonomy_version' => 'rsr-source-signals-v1',
+            'displayed_topic_count' => count($clean),
             'corrected_at' => gmdate('c'),
             'topics' => $clean,
             'limitations' => array_slice(array_values(array_filter(array_map('sanitize_text_field', (array)($results['limitations'] ?? [])))), 0, 20),

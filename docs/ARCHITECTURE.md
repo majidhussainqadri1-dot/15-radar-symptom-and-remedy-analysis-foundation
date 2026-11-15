@@ -24,12 +24,12 @@ No external module writes directly to File 15 tables. Commands, read contracts a
 ## 2. Runtime layers
 
 1. `RSR_Domain`: pure limits, validation, report state machine, windows, scoring and canonical hashing.
-2. `RSR_DB`: ten canonical tables, idempotent install/upgrade, audit and row evidence.
+2. `RSR_DB`: twelve canonical tables (including inbox and rate limits), idempotent install/upgrade, audit and row evidence.
 3. `RSR_Capabilities`: File 00 claim bridge plus native capabilities and object ownership.
 4. `RSR_Radar_Service`: schema, bounded search, File 06 linkage, comparison and mapping governance.
 5. `RSR_Study_Service`: owner-only encrypted CRUD, PII prevention, export, deletion and retention.
 6. `RSR_Provider_Registry`: versioned adapter interface and safe built-in aggregate provider.
-7. `RSR_Trend_Service`: source lifecycle, idempotent ingestion, normalization, scoring, report workflow, fallback, correction and retention.
+7. `RSR_Trend_Service`: source lifecycle, idempotent ingestion, versioned source-signal categories (source/search/news activity only), typed topic scoring, report workflow, fallback, correction and retention. Clinical prevalence is out of scope without a separate reviewed denominator/case-definition contract.
 8. `RSR_Events`: transactional-style outbox, bounded retry/dead-letter and versioned consumers.
 9. `RSR_API`: stable REST DTOs, permissions, rate limits and cache/privacy headers.
 10. `RSR_Routes`: six canonical routes, theme-shell integration, SEO/privacy and accessible presentation.

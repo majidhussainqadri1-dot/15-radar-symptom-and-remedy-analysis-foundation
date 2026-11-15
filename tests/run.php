@@ -14,6 +14,22 @@ $assert = static function (bool $condition, string $message) use (&$tests, &$fai
 };
 
 $assert(count(RSR_Domain::dimensions()) === 16, 'Exactly sixteen governed Radar dimensions must exist.');
+$assert(RSR_Domain::normalize_source_signal_type('source_activity') === 'source_activity', 'Legacy sources must have an explicit activity-only classification.');
+$assert(RSR_Domain::normalize_source_signal_type('search_interest') === 'search_interest', 'Search-interest classification must be supported.');
+$assert(RSR_Domain::normalize_source_signal_type('news_interest') === 'news_interest', 'News-interest classification must be supported.');
+$assert(RSR_Domain::normalize_source_signal_type('epidemiology') === null, 'Epidemiology must require a separately reviewed clinical data contract.');
+$assert(RSR_Domain::normalize_source_signal_type('surveillance') === null, 'Surveillance data must not be silently grouped with popularity.');
+$assert(RSR_Domain::normalize_source_signal_type(['source_activity']) === null, 'Malformed non-scalar signal types must be rejected.');
+$many = array_fill(0, 140, ['signal_type' => 'source_activity', 'topic_label' => 'A', 'score' => 70, 'volume' => 100]);
+$some_search = array_fill(0, 5, ['signal_type' => 'search_interest', 'topic_label' => 'S', 'score' => 50, 'volume' => 20]);
+$some_news = array_fill(0, 5, ['signal_type' => 'news_interest', 'topic_label' => 'N', 'score' => 40, 'volume' => 10]);
+$quota = RSR_Domain::select_typed_trend_topics(array_merge($many, $some_search, $some_news), 100);
+$types_seen = array_count_values(array_column($quota, 'signal_type'));
+$assert(count($quota) === 100 && ($types_seen['search_interest'] ?? 0) === 5 && ($types_seen['news_interest'] ?? 0) === 5, 'Typed report selection must not crowd out less numerous signal categories.');
+$single = RSR_Domain::select_typed_trend_topics($many, 100);
+$assert(count($single) === 100, 'One available activity category may fill the bounded display.');
+$reject = RSR_Domain::select_typed_trend_topics([['signal_type' => 'epidemiology', 'topic_label' => 'fabricated', 'score' => 100]], 100);
+$assert($reject === [], 'Unsupported clinical source categories cannot be added to activity rankings.');
 $assert(in_array('cc-by-4.0', RSR_Domain::writable_source_licenses(), true), 'Current versioned CC licence must be writable.');
 $assert(!in_array('cc-by', RSR_Domain::writable_source_licenses(), true), 'Legacy unversioned licence must not be writable.');
 $assert(in_array('cc-by', RSR_Domain::allowed_source_licenses(), true), 'Legacy licence must remain readable for controlled migration.');

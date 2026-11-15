@@ -244,9 +244,17 @@ trait RSR_Trend_Reports_Trait
         }
         $sources = json_decode((string)$row['sources_json'], true) ?: [];
         $allowed_refs = array_values(array_filter(array_map(static fn(array $source): string => (string)($source['public_id'] ?? ''), (array)$sources)));
+        $source_types_by_ref = [];
+        foreach ((array)$sources as $source) {
+            $id = (string)($source['public_id'] ?? '');
+            $type = RSR_Domain::normalize_source_signal_type($source['signal_type'] ?? 'source_activity');
+            if ($id !== '' && $type !== null) {
+                $source_types_by_ref[$id] = $type;
+            }
+        }
         $clean_results = null;
         if ($action === 'correct' && $replacement_results !== null) {
-            $clean_results = $this->sanitize_report_results($replacement_results, $allowed_refs);
+            $clean_results = $this->sanitize_report_results($replacement_results, $allowed_refs, $source_types_by_ref);
             if ($clean_results['topics'] === []) {
                 return new WP_Error('rsr_correction_results_invalid', __('Corrected results contain no governed topics.', RSR_TEXT_DOMAIN), ['status' => 422]);
             }

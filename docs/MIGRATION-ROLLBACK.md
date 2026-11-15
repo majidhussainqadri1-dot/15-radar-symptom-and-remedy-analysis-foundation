@@ -2,7 +2,7 @@
 
 ## From the historical 0.1.x foundation
 
-The historical branch used the `radar-foundation` folder, `SRF_` symbols and a narrower post/shortcode model. Version `1.0.0` is the canonical File 15 implementation with the required `15-radar-symptom-and-remedy-analysis-foundation` folder, `RSR_` symbols, ten-table model and full trend domain.
+The historical branch used the `radar-foundation` folder, `SRF_` symbols and a narrower post/shortcode model. Version `1.0.0` is the canonical File 15 implementation with the required `15-radar-symptom-and-remedy-analysis-foundation` folder, `RSR_` symbols, twelve-table model (including inbox/rate_limits) and full trend domain.
 
 No automatic destructive import of historical data is performed. Before migration:
 
@@ -16,7 +16,7 @@ No automatic destructive import of historical data is performed. Before migratio
 
 ## Fresh install
 
-Activation creates/updates the ten tables with `dbDelta`, seeds dimension definitions, grants administrator capabilities, registers schedules and rewrite rules, and records versions. Repeated activation is idempotent.
+Activation creates/updates the twelve tables with `dbDelta`, seeds dimension definitions, grants administrator capabilities, registers schedules and rewrite rules, and records versions. Repeated activation is idempotent.
 
 ## Upgrade
 
@@ -27,6 +27,16 @@ Activation creates/updates the ten tables with `dbDelta`, seeds dimension defini
 - preserve public IDs and history;
 - include forward and rollback tests;
 - document data transformation and reconciliation.
+
+## Source-signal migration 1.2.0 → 1.2.1 (proposed; not production-accepted)
+
+1. Freeze and back up the exact installed package, schema version, table definitions, source IDs, observations and already-published reports.
+2. On a disposable staging clone, ensure 12 existing tables and source column inventory are recorded. Confirm this change only adds `rsr_sources.signal_type VARCHAR(32) NOT NULL DEFAULT 'source_activity'`.
+3. Upgrade using `RSR_DB::maybe_upgrade()`; it must verify the new source column before updating the `rsr_schema_version` option. A DB error must leave the marker unchanged and block release.
+4. Confirm legacy source values are `source_activity` only as a *compatibility label*, not verified epidemiology. Classify only reviewed, observation-free sources; any reclassification of ingested sources requires a separately audited migration.
+5. Compare previous reports and source counts/hashes. Previous reports retain their method version and should not silently gain a disease claim.
+6. Test an unsupported signal type, incompatible type after ingestion, duplicate/retry, approved signal types, and correction/retraction.
+7. Rehearse matched package+database restore and rollback before live rollout. Never downgrade a migrated database independently of its package.
 
 ## Rollback
 

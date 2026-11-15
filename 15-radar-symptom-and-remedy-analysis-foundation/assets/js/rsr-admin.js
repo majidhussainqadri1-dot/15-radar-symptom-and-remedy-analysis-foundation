@@ -28,6 +28,7 @@
         form.elements.version.value = String(source.version || 0);
         form.elements.name.value = source.name || '';
         form.elements.dataset.value = source.dataset || '';
+        form.elements.signal_type.value = source.signal_type || 'source_activity';
         form.elements.edition.value = source.edition || '';
         form.elements.provider_key.value = source.provider_key || 'manual';
         form.elements.license_code.value = source.license_code || 'internal-reviewed-aggregate';
@@ -94,6 +95,7 @@
             version: Number(form.elements.version.value || 0),
             name: form.elements.name.value,
             dataset: form.elements.dataset.value,
+            signal_type: form.elements.signal_type.value,
             edition: form.elements.edition.value,
             provider_key: form.elements.provider_key.value,
             license_code: form.elements.license_code.value,

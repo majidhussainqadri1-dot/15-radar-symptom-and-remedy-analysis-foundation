@@ -112,6 +112,7 @@ final class RSR_DB
             provider_key varchar(100) NOT NULL,
             name varchar(191) NOT NULL,
             dataset varchar(191) NOT NULL,
+            signal_type varchar(32) NOT NULL DEFAULT 'source_activity',
             edition varchar(100) NULL,
             license_code varchar(100) NOT NULL,
             review_date date NOT NULL,
@@ -304,6 +305,11 @@ final class RSR_DB
         if ($missing !== []) {
             throw new RuntimeException('File 15 schema installation incomplete: ' . implode(',', $missing));
         }
+        // Do not advance the schema marker if dbDelta skipped the new column.
+        $signal_column = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$t['sources']} LIKE %s", 'signal_type'));
+        if ($signal_column !== 'signal_type') {
+            throw new RuntimeException('File 15 source signal taxonomy migration incomplete.');
+        }
         self::seed_dimensions();
         update_option('rsr_schema_version', RSR_SCHEMA_VERSION, false);
     }
@@ -341,6 +347,20 @@ final class RSR_DB
             }
         }
         return $missing;
+    }
+
+    /** @return array<int, string> Schema drift evidence, not an instruction to auto-patch live. */
+    public static function missing_required_columns(?array $missing_tables = null): array
+    {
+        global $wpdb;
+        $missing_tables = $missing_tables ?? self::missing_tables();
+        if (in_array('sources', $missing_tables, true)) {
+            return ['sources.signal_type'];
+        }
+        $table = self::table('sources');
+        $wpdb->last_error = '';
+        $column = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$table} LIKE %s", 'signal_type'));
+        return $wpdb->last_error === '' && $column === 'signal_type' ? [] : ['sources.signal_type'];
     }
 
     public static function seed_dimensions(): void
