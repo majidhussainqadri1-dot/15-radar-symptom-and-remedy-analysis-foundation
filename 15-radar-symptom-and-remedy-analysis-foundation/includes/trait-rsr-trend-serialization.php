@@ -15,6 +15,10 @@ trait RSR_Trend_Serialization_Trait
         if (!RSR_Provider_Registry::get($provider_key)) {
             return new WP_Error('rsr_provider_missing', __('The trend provider adapter is unavailable.', RSR_TEXT_DOMAIN), ['status' => 400]);
         }
+        $signal_type = RSR_Domain::normalize_source_signal_type($input['signal_type'] ?? 'source_activity');
+        if ($signal_type === null) {
+            return new WP_Error('rsr_signal_type_unapproved', __('Unsupported source signal type; clinical prevalence and surveillance require separately reviewed evidence.', RSR_TEXT_DOMAIN), ['status' => 422]);
+        }
         $name = sanitize_text_field((string)($input['name'] ?? ''));
         $dataset = sanitize_text_field((string)($input['dataset'] ?? ''));
         if ($name === '' || $dataset === '') {
@@ -59,6 +63,7 @@ trait RSR_Trend_Serialization_Trait
             'provider_key' => $provider_key,
             'name' => $name,
             'dataset' => $dataset,
+            'signal_type' => $signal_type,
             'edition' => sanitize_text_field((string)($input['edition'] ?? '')) ?: null,
             'license_code' => $license,
             'review_date' => $review_date,
@@ -83,6 +88,7 @@ trait RSR_Trend_Serialization_Trait
             'provider_key' => (string)($row['provider_key'] ?? ''),
             'name' => (string)($row['name'] ?? ''),
             'dataset' => (string)($row['dataset'] ?? ''),
+            'signal_type' => (string)($row['signal_type'] ?? 'source_activity'),
             'edition' => $row['edition'] ?? null,
             'license_code' => (string)($row['license_code'] ?? ''),
             'review_date' => (string)($row['review_date'] ?? ''),

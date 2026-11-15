@@ -27,6 +27,16 @@ trait RSR_Trend_Source_Ingestion_Trait
             return new WP_Error('rsr_forbidden', __('You cannot manage Radar trend sources.', RSR_TEXT_DOMAIN), ['status' => 403]);
         }
 
+        // Legacy writers may omit this field when editing an existing source.
+        // Preserve the canonical category instead of silently reclassifying it.
+        if ($public_id !== null && $public_id !== '' && !array_key_exists('signal_type', $input)) {
+            global $wpdb;
+            $source_table = RSR_DB::table('sources');
+            $existing_signal = $wpdb->get_var($wpdb->prepare("SELECT signal_type FROM {$source_table} WHERE public_id = %s LIMIT 1", $public_id));
+            if (is_string($existing_signal) && $existing_signal !== '') {
+                $input['signal_type'] = $existing_signal;
+            }
+        }
         $validated = $this->validate_source($input);
         if (is_wp_error($validated)) {
             return $validated;
@@ -46,6 +56,7 @@ trait RSR_Trend_Source_Ingestion_Trait
                     'provider_key' => $validated['provider_key'],
                     'name' => $validated['name'],
                     'dataset' => $validated['dataset'],
+                    'signal_type' => $validated['signal_type'],
                     'edition' => $validated['edition'],
                     'license_code' => $validated['license_code'],
                     'review_date' => $validated['review_date'],
@@ -77,12 +88,20 @@ trait RSR_Trend_Source_Ingestion_Trait
             if ($expected_version !== (int)$current['version']) {
                 return new WP_Error('rsr_version_conflict', __('The trend source changed in another session.', RSR_TEXT_DOMAIN), ['status' => 409]);
             }
+            if ((string)($current['signal_type'] ?? 'source_activity') !== $validated['signal_type']) {
+                $observations = RSR_DB::table('observations');
+                $prior = (int)$wpdb->get_var($wpdb->prepare("SELECT id FROM {$observations} WHERE source_id = %d LIMIT 1", (int)$current['id']));
+                if ($prior > 0) {
+                    return new WP_Error('rsr_signal_type_locked', __('A source with collected observations cannot be reclassified without an audited migration.', RSR_TEXT_DOMAIN), ['status' => 409]);
+                }
+            }
             $affected = $wpdb->update(
                 $table,
                 [
                     'provider_key' => $validated['provider_key'],
                     'name' => $validated['name'],
                     'dataset' => $validated['dataset'],
+                    'signal_type' => $validated['signal_type'],
                     'edition' => $validated['edition'],
                     'license_code' => $validated['license_code'],
                     'review_date' => $validated['review_date'],

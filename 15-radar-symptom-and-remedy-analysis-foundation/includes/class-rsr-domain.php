@@ -21,7 +21,19 @@ final class RSR_Domain
     public const MAX_STUDY_TITLE_LENGTH = 160;
     public const MAX_STUDY_NOTES_BYTES = 32768;
     public const MAX_STUDIES_PER_DOCTOR = 500;
-    public const METHOD_VERSION = 'rsr-trend-score-v1';
+    public const METHOD_VERSION = 'rsr-trend-score-v2';
+
+    /** Activity signals only: epidemiological rates need a separate reviewed clinical contract. */
+    public static function source_signal_types(): array
+    {
+        return ['source_activity', 'search_interest', 'news_interest'];
+    }
+
+    /** @param mixed $value */
+    public static function normalize_source_signal_type($value): ?string
+    {
+        return is_string($value) && in_array($value, self::source_signal_types(), true) ? $value : null;
+    }
 
     /** @return array<int, string> */
     public static function writable_source_licenses(): array

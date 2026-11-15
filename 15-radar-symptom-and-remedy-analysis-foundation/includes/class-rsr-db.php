@@ -112,6 +112,7 @@ final class RSR_DB
             provider_key varchar(100) NOT NULL,
             name varchar(191) NOT NULL,
             dataset varchar(191) NOT NULL,
+            signal_type varchar(32) NOT NULL DEFAULT 'source_activity',
             edition varchar(100) NULL,
             license_code varchar(100) NOT NULL,
             review_date date NOT NULL,
@@ -303,6 +304,11 @@ final class RSR_DB
         $missing = self::missing_tables();
         if ($missing !== []) {
             throw new RuntimeException('File 15 schema installation incomplete: ' . implode(',', $missing));
+        }
+        // Do not advance the schema marker if dbDelta skipped the new column.
+        $signal_column = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$t['sources']} LIKE %s", 'signal_type'));
+        if ($signal_column !== 'signal_type') {
+            throw new RuntimeException('File 15 source signal taxonomy migration incomplete.');
         }
         self::seed_dimensions();
         update_option('rsr_schema_version', RSR_SCHEMA_VERSION, false);

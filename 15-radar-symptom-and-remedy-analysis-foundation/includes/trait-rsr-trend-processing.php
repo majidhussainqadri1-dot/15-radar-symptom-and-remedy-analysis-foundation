@@ -201,7 +201,7 @@ trait RSR_Trend_Processing_Trait
         $sources_table = RSR_DB::table('sources');
         $rows = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT o.*, s.public_id AS source_public_id, s.name AS source_name, s.dataset, s.edition, s.license_code, s.review_date, s.territory, s.restrictions, s.quality_score, s.stale_after_seconds, s.last_success_at
+                "SELECT o.*, s.public_id AS source_public_id, s.name AS source_name, s.dataset, s.signal_type, s.edition, s.license_code, s.review_date, s.territory, s.restrictions, s.quality_score, s.stale_after_seconds, s.last_success_at
                  FROM {$observations} o
                  INNER JOIN {$sources_table} s ON s.id = o.source_id
                  WHERE s.status <> 'disabled' AND o.window_type = %s AND o.geography = %s AND o.window_start_utc = %s AND o.window_end_utc = %s
@@ -227,10 +227,16 @@ trait RSR_Trend_Processing_Trait
                 continue;
             }
             $topic_key = (string)$row['topic_key'];
-            if (!isset($topics[$topic_key])) {
-                $topics[$topic_key] = [
+            $signal_type = RSR_Domain::normalize_source_signal_type($row['signal_type'] ?? null);
+            if ($signal_type === null) {
+                continue; // Unknown or unreviewed source category must not enter a report.
+            }
+            $topic_group_key = $signal_type . '|' . $topic_key;
+            if (!isset($topics[$topic_group_key])) {
+                $topics[$topic_group_key] = [
                     'topic_key' => $topic_key,
                     'topic_label' => (string)$row['topic_label'],
+                    'signal_type' => $signal_type,
                     'score' => 0.0,
                     'confidence' => 0.0,
                     'volume' => 0.0,
@@ -239,18 +245,19 @@ trait RSR_Trend_Processing_Trait
                     'source_refs' => [],
                 ];
             }
-            $topics[$topic_key]['score'] += (float)($normalized['score'] ?? 0.0) * (float)$row['confidence'];
-            $topics[$topic_key]['confidence'] += (float)$row['confidence'];
-            $topics[$topic_key]['volume'] += (float)$row['volume'];
-            $topics[$topic_key]['baseline'] += (float)$row['baseline'];
-            $topics[$topic_key]['source_count']++;
-            $topics[$topic_key]['source_refs'][] = (string)$row['source_public_id'];
+            $topics[$topic_group_key]['score'] += (float)($normalized['score'] ?? 0.0) * (float)$row['confidence'];
+            $topics[$topic_group_key]['confidence'] += (float)$row['confidence'];
+            $topics[$topic_group_key]['volume'] += (float)$row['volume'];
+            $topics[$topic_group_key]['baseline'] += (float)$row['baseline'];
+            $topics[$topic_group_key]['source_count']++;
+            $topics[$topic_group_key]['source_refs'][] = (string)$row['source_public_id'];
             $confidence_values[] = (float)$row['confidence'];
 
             $sources[(string)$row['source_public_id']] = [
                 'public_id' => (string)$row['source_public_id'],
                 'name' => (string)$row['source_name'],
                 'dataset' => (string)$row['dataset'],
+                'signal_type' => $signal_type,
                 'edition' => $row['edition'] ?? null,
                 'license_code' => (string)$row['license_code'],
                 'review_date' => (string)$row['review_date'],
@@ -283,6 +290,11 @@ trait RSR_Trend_Processing_Trait
         }
         unset($topic);
         usort($topics, static function (array $a, array $b): int {
+            // Never present epidemiologically incomparable categories as one rank.
+            $signal_order = strcmp((string)$a['signal_type'], (string)$b['signal_type']);
+            if ($signal_order !== 0) {
+                return $signal_order;
+            }
             $score = (float)$b['score'] <=> (float)$a['score'];
             if ($score !== 0) {
                 return $score;
@@ -295,6 +307,7 @@ trait RSR_Trend_Processing_Trait
 
         $result_payload = [
             'method_version' => RSR_Domain::METHOD_VERSION,
+            'signal_taxonomy_version' => 'rsr-source-signals-v1',
             'window_type' => $window_type,
             'window' => $window,
             'geography' => $geography,
