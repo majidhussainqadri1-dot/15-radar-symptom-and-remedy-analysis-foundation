@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.5 — 2026-11-15 (source-only classification candidate)
+
+- Explicit governed source classifications (`source_activity`, `search_interest`, `news_interest`), with unsupported clinical prevalence/surveillance fail-closed.
+- Schema 1.2.1 adds a classified source field. The DB upgrade verifies that the column exists before recording the new schema version.
+- Existing classified sources cannot change type after ingestion without a reviewed migration; legacy source updates preserve category.
+- Report topics are grouped by signal type, and editorial corrections must preserve source-to-topic classification; the UI discloses signal categories.
+- Expands domain and source regression checks and repairs status/data-model documentation drift.
+- **Draft only:** does not implement canonical File 06 disease IDs, clinical denominators, licensed network providers or File 26 end-to-end connector. Staging/live remain unverified.
+
+
 ## 1.2.4 — 2026-10-20 (fourth source-correction review)
 
 - HTML Radar/Compare input parameters no longer coerce nested arrays into `Array`, produce PHP array-conversion warnings, or partially accept mixed malformed remedy IDs.

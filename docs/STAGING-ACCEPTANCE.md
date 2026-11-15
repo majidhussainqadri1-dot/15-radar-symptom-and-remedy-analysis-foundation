@@ -22,3 +22,13 @@ Repository completion does not satisfy these external gates.
 15. Inject an adapter's fabricated `match_count`, duplicate source references, invalid source IDs, missing mappings, future/impossible review dates, and verify they are rejected before Radar displays evidence.
 16. File 06 canonical events use a stable event ID and affected public concept/remedy identity; replay corrections/retractions/merges through File 15 inbox and File 26 rebuild, with cache invalidation and no private-data exposure. A current source/deployment version and adapter owner must be pinned.
 17. Freeze deployed WordPress file checksum, active plugin source version, DB schema/migration state and log evidence before any live defect diagnosis. Re-run staging backup/restore and exact-artifact deployment parity.
+
+
+## Proposed v1.2.5 source-signal acceptance (not yet passed)
+
+18. On a fresh and an upgraded real MariaDB copy, verify all 12 tables and the new `rsr_sources.signal_type` column. Confirm the `rsr_schema_version` marker only advances after the column is present.
+19. Verify old sources remain tagged `source_activity`, and updating a source without a signal field preserves an existing explicit classification. After observations exist, attempted reclassification returns an explicit 409 and does not change the record.
+20. Verify malformed and unsupported types (nested input, epidemiology, surveillance) are rejected with no new source and no false public disease prevalence.
+21. Create equal topic-key aggregates in independent search/news/source activity categories. Reports must preserve separate topics, separate source references, and visibly disclose the category. A reviewer must not change a source category through a correction payload.
+22. Verify old published report labels remain accurately qualified, and new-method results are not silently mixed with old scoring. Recheck stale/corrected/retracted reports with File 26 indexes.
+23. Record source-type mapping/denominator/canonical disease-ID ownership and decide separately whether any future clinical epidemiology features may be switched on.
