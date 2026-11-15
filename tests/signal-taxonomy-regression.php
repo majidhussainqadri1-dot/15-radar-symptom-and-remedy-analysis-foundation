@@ -91,6 +91,8 @@ $corrected = $sanitize->invoke($service, [
 ], ['search-source', 'news-source'], ['search-source' => 'search_interest', 'news-source' => 'news_interest']);
 $assert(count($corrected['topics'] ?? []) === 1,
     'Rejected and mismatched clinical categories must not be public report corrections.');
+$assert(($corrected['signal_taxonomy_version'] ?? '') === 'rsr-source-signals-v1',
+    'Editorial corrections must retain the source-signal taxonomy version.');
 $first = $corrected['topics'][0] ?? [];
 $assert(($first['signal_type'] ?? null) === 'search_interest' &&
     ($first['source_refs'] ?? null) === ['search-source'] && ($first['source_count'] ?? null) === 1,

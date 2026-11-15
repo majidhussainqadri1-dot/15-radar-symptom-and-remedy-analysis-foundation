@@ -292,8 +292,11 @@ trait RSR_Trend_Serialization_Trait
                 'source_refs' => $refs,
             ];
         }
+        $clean = RSR_Domain::select_typed_trend_topics($clean, 100);
         return [
             'method_version' => RSR_Domain::METHOD_VERSION,
+            'signal_taxonomy_version' => 'rsr-source-signals-v1',
+            'displayed_topic_count' => count($clean),
             'corrected_at' => gmdate('c'),
             'topics' => $clean,
             'limitations' => array_slice(array_values(array_filter(array_map('sanitize_text_field', (array)($results['limitations'] ?? [])))), 0, 20),

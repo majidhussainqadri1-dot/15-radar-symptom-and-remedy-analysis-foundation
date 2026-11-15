@@ -350,10 +350,11 @@ final class RSR_DB
     }
 
     /** @return array<int, string> Schema drift evidence, not an instruction to auto-patch live. */
-    public static function missing_required_columns(): array
+    public static function missing_required_columns(?array $missing_tables = null): array
     {
         global $wpdb;
-        if (in_array('sources', self::missing_tables(), true)) {
+        $missing_tables = $missing_tables ?? self::missing_tables();
+        if (in_array('sources', $missing_tables, true)) {
             return ['sources.signal_type'];
         }
         $table = self::table('sources');

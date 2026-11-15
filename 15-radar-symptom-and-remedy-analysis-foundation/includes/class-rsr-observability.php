@@ -102,7 +102,7 @@ final class RSR_Observability
     public static function diagnostics(): array
     {
         $missing = RSR_DB::missing_tables();
-        $missing_columns = RSR_DB::missing_required_columns();
+        $missing_columns = RSR_DB::missing_required_columns($missing);
         $recorded_schema = (string)get_option('rsr_schema_version', '0');
         $fingerprint = null;
         try {
