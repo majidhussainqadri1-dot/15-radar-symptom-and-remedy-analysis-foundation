@@ -27,3 +27,8 @@ External evidence remains required for staging roles, provider outage/retry, mea
 | AT-DI-01–14 | Research activity types cannot silently claim prevalence | Canonical disease IDs, denominator, source-specific case definition and complete independent Disease Intelligence module |
 
 Draft source coverage is not complete end-to-end coverage. The File 06 native eligibility bridge, File 26 public connector and true clinical disease taxonomy are independent open acceptance gates.
+
+
+## Typed report allocation correctness
+
+The 1.2.5 candidate uses deterministic round-robin selection (up to 100 visible topics total), so a high-volume generic activity source cannot entirely crowd out smaller search/news groups. Within each group, score/volume/label tie-breaking remains deterministic. This is a *presentation fairness bound*, not an epidemiological comparison, and is covered by pure domain assertions. Real dataset performance and interpretability still need staging review.

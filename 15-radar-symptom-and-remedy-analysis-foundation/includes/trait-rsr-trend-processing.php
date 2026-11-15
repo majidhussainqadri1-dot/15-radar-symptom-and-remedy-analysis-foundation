@@ -289,25 +289,16 @@ trait RSR_Trend_Processing_Trait
             $topic['source_refs'] = array_values(array_unique($topic['source_refs']));
         }
         unset($topic);
-        usort($topics, static function (array $a, array $b): int {
-            // Never present epidemiologically incomparable categories as one rank.
-            $signal_order = strcmp((string)$a['signal_type'], (string)$b['signal_type']);
-            if ($signal_order !== 0) {
-                return $signal_order;
-            }
-            $score = (float)$b['score'] <=> (float)$a['score'];
-            if ($score !== 0) {
-                return $score;
-            }
-            $volume = (float)$b['volume'] <=> (float)$a['volume'];
-            return $volume !== 0 ? $volume : strcmp((string)$a['topic_label'], (string)$b['topic_label']);
-        });
-        $topics = array_slice(array_values($topics), 0, 100);
+        // Round-robin across types avoids suppressing a smaller activity signal.
+        $candidate_topic_count = count($topics);
+        $topics = RSR_Domain::select_typed_trend_topics(array_values($topics), 100);
         $confidence = $confidence_values === [] ? 0.0 : array_sum($confidence_values) / count($confidence_values);
 
         $result_payload = [
             'method_version' => RSR_Domain::METHOD_VERSION,
             'signal_taxonomy_version' => 'rsr-source-signals-v1',
+            'candidate_topic_count' => $candidate_topic_count,
+            'displayed_topic_count' => count($topics),
             'window_type' => $window_type,
             'window' => $window,
             'geography' => $geography,

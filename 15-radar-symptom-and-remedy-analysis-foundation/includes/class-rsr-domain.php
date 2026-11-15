@@ -35,6 +35,64 @@ final class RSR_Domain
         return is_string($value) && in_array($value, self::source_signal_types(), true) ? $value : null;
     }
 
+
+    /**
+     * Preserve visibility of independent, incommensurable activity signals.
+     * Select with deterministic round-robin quotas, then group for display.
+     * One available category can still fill the entire bounded result.
+     *
+     * @param array<int, array<string,mixed>> $topics
+     * @return array<int, array<string,mixed>>
+     */
+    public static function select_typed_trend_topics(array $topics, int $limit = 100): array
+    {
+        $limit = max(1, min(100, $limit));
+        $groups = array_fill_keys(self::source_signal_types(), []);
+        foreach ($topics as $topic) {
+            if (!is_array($topic)) {
+                continue;
+            }
+            $type = self::normalize_source_signal_type($topic['signal_type'] ?? null);
+            if ($type !== null) {
+                $groups[$type][] = $topic;
+            }
+        }
+        $sort = static function (array $a, array $b): int {
+            $score = (float)($b['score'] ?? 0) <=> (float)($a['score'] ?? 0);
+            if ($score !== 0) {
+                return $score;
+            }
+            $volume = (float)($b['volume'] ?? 0) <=> (float)($a['volume'] ?? 0);
+            return $volume !== 0 ? $volume : strcmp((string)($a['topic_label'] ?? ''), (string)($b['topic_label'] ?? ''));
+        };
+        foreach ($groups as &$group) {
+            usort($group, $sort);
+        }
+        unset($group);
+        $selected = [];
+        while (count($selected) < $limit) {
+            $added = false;
+            foreach (self::source_signal_types() as $type) {
+                if ($groups[$type] === []) {
+                    continue;
+                }
+                $selected[] = array_shift($groups[$type]);
+                $added = true;
+                if (count($selected) >= $limit) {
+                    break;
+                }
+            }
+            if (!$added) {
+                break;
+            }
+        }
+        usort($selected, static function (array $a, array $b) use ($sort): int {
+            $category = strcmp((string)$a['signal_type'], (string)$b['signal_type']);
+            return $category !== 0 ? $category : $sort($a, $b);
+        });
+        return $selected;
+    }
+
     /** @return array<int, string> */
     public static function writable_source_licenses(): array
     {
