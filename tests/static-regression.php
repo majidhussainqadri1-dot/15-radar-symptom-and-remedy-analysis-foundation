@@ -71,10 +71,10 @@ $adminJs = $files['assets/js/rsr-admin.js'] ?? '';
 $readme = $files['readme.txt'] ?? '';
 
 $assert(is_dir($plugin), 'Canonical plugin directory is missing.');
-$assert(str_contains($main, 'Version: 1.2.4'), 'Plugin header version must be 1.2.4.');
-$assert(str_contains($main, "define('RSR_VERSION', '1.2.4')"), 'Runtime version must be 1.2.4.');
-$assert(str_contains($main, "define('RSR_SCHEMA_VERSION', '1.2.0')"), 'Schema version must be 1.2.0.');
-$assert(str_contains($readme, 'Stable tag: 1.2.4'), 'Stable tag must be 1.2.4.');
+$assert(str_contains($main, 'Version: 1.2.5'), 'Plugin header version must be 1.2.5.');
+$assert(str_contains($main, "define('RSR_VERSION', '1.2.5')"), 'Runtime version must be 1.2.5.');
+$assert(str_contains($main, "define('RSR_SCHEMA_VERSION', '1.2.1')"), 'Schema version must be 1.2.1.');
+$assert(str_contains($readme, 'Stable tag: 1.2.5'), 'Stable tag must be 1.2.5.');
 $assert(str_contains($main, "class-rsr-hardening.php"), 'Hardening class must be loaded.');
 $assert(count($phpFiles) >= 30, 'Expected at least thirty plugin PHP files.');
 $assert(count($jsFiles) === 2, 'Expected exactly public and operations JavaScript bundles.');
@@ -115,6 +115,13 @@ $assert(str_contains($events, 'validate_incoming'), 'Incoming event schema valid
 $assert(str_contains($events, 'rsr_event_id_collision'), 'Event payload collision rejection is missing.');
 
 $assert(str_contains($domain, 'writable_source_licenses'), 'Strict writable licence registry is missing.');
+$assert(str_contains($domain, 'normalize_source_signal_type'), 'Signal taxonomy validation is missing.');
+$assert(str_contains($db, "signal_type varchar(32) NOT NULL DEFAULT 'source_activity'"), 'Versioned source signal column is missing.');
+$assert(str_contains($db, 'SHOW COLUMNS FROM'), 'Signal column migration must be checked before schema version commit.');
+$assert(str_contains($trends, '$topic_group_key = $signal_type'), 'Unlike sources must not be grouped into one trend topic.');
+$assert(str_contains($trends, "'signal_type' => $signal_type"), 'Public trend classifications must carry their source signal type.');
+$assert(str_contains($adminJs, 'form.elements.signal_type.value'), 'Signal taxonomy must be preserved by the UI.');
+$assert(str_contains($manageTemplate, 'name="signal_type"'), 'Source editor must explicitly label activity signals.');
 $assert(str_contains($domain, 'invalid_remedy_id'), 'Malformed remedy identifier error is missing.');
 $assert(str_contains($domain, 'array_merge($existing, $normalized)'), 'Normalized filter collision merge is missing.');
 $assert(str_contains($domain, 'RSR_Hardening::finite_float'), 'Finite trend scoring is missing.');

@@ -14,6 +14,12 @@ $assert = static function (bool $condition, string $message) use (&$tests, &$fai
 };
 
 $assert(count(RSR_Domain::dimensions()) === 16, 'Exactly sixteen governed Radar dimensions must exist.');
+$assert(RSR_Domain::normalize_source_signal_type('source_activity') === 'source_activity', 'Legacy sources must have an explicit activity-only classification.');
+$assert(RSR_Domain::normalize_source_signal_type('search_interest') === 'search_interest', 'Search-interest classification must be supported.');
+$assert(RSR_Domain::normalize_source_signal_type('news_interest') === 'news_interest', 'News-interest classification must be supported.');
+$assert(RSR_Domain::normalize_source_signal_type('epidemiology') === null, 'Epidemiology must require a separately reviewed clinical data contract.');
+$assert(RSR_Domain::normalize_source_signal_type('surveillance') === null, 'Surveillance data must not be silently grouped with popularity.');
+$assert(RSR_Domain::normalize_source_signal_type(['source_activity']) === null, 'Malformed non-scalar signal types must be rejected.');
 $assert(in_array('cc-by-4.0', RSR_Domain::writable_source_licenses(), true), 'Current versioned CC licence must be writable.');
 $assert(!in_array('cc-by', RSR_Domain::writable_source_licenses(), true), 'Legacy unversioned licence must not be writable.');
 $assert(in_array('cc-by', RSR_Domain::allowed_source_licenses(), true), 'Legacy licence must remain readable for controlled migration.');

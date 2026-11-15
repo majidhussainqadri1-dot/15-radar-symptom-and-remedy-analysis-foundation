@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="$ROOT/15-radar-symptom-and-remedy-analysis-foundation"
 DIST="$ROOT/dist"
-VERSION="1.2.4"
+VERSION="1.2.5"
 ZIP_NAME="15-radar-symptom-and-remedy-analysis-foundation-${VERSION}.zip"
 ZIP_PATH="$DIST/$ZIP_NAME"
 SECOND_ZIP="$DIST/.determinism-second.zip"
@@ -136,7 +136,7 @@ PLUGIN_PHP_COUNT="$(find "$PLUGIN_DIR" -type f -name '*.php' | wc -l | tr -d ' '
 BUILD_UTC="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 cat > "$ROOT/docs/RELEASE-EVIDENCE.md" <<EOF
-# Release Evidence — 1.2.4
+# Release Evidence — 1.2.5
 
 Generated: \`$BUILD_UTC\`
 
@@ -168,6 +168,14 @@ Baseline version 1.2.0 added atomic schema upgrade verification, durable event i
 Baseline version 1.2.1 repaired the public trend report sort/cursor mismatch, tests backward-compatible cursor decoding, and restores four-plan compliance to the mandatory build gate. The database schema remains 1.2.0. These candidate fixes do not constitute staging/live verification.\n\n## Second corrective audit
 
 Version 1.2.2 adds urgent-care diversion before radar provider lookup, single-keyword research privacy, verified File 06 legacy eligibility, source-grounded external mappings, and forty sequential post-correction source/test review passes. These are automated repository checks, not forty live clinical workflows. Schema remains 1.2.0.
+
+## Source signal classification correction — 1.2.5
+
+- Declares versioned source categories: source activity, search interest and news interest.
+- Refuses clinical prevalence/surveillance metrics without a separate reviewed disease-data contract.
+- Groups trend topics by signal type and preserves the type through human corrections.
+- Upgrades schema from 1.2.0 to 1.2.1; checks the new column before committing the version marker.
+- Needs actual MySQL staging upgrade/restore/rollback and cross-file owner approval before release.
 
 ## Evidence qualification
 
