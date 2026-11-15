@@ -74,3 +74,13 @@ External search candidates are accepted only with eligible current File 06 remed
 The prior `HE_Content` legacy compatibility path now requires a per-remedy explicit `rsr_file06_legacy_remedy_eligible` approval from an owner-controlled adapter; default false. A `published` WordPress post alone does not satisfy canonical clinical eligibility.
 
 File 06's independent branch currently emits a `sabri_domain_event` envelope rather than File 15's `sabri_platform_event_v1`; do not claim bridge parity or implement implicit object-ID inference. See File 06 blocker issue #10.
+
+
+## Version 1.2.5 proposed source signal taxonomy
+
+- `POST/PUT /manage/sources` accepts `signal_type` with exactly `source_activity`, `search_interest`, or `news_interest`. An omitted type on a **new** source is `source_activity` for compatibility; an omitted type on an update preserves the current recorded type.
+- Unsupported or malformed types fail with `rsr_signal_type_unapproved`; clinical prevalence, incidence, mortality and surveillance are not supported by this trend-source contract.
+- A source with historical observations cannot be reclassified through ordinary update; it requires a separate reviewed migration, with `rsr_signal_type_locked` and 409 on attempts.
+- Public trend report topics and source metadata expose `signal_type`. Scores are grouped and ordered *within* a signal category. Unlike categories must not be represented as a single epidemiological ranking.
+- Editorial correction proposals may only retain source references from the same signal category; unapproved or mismatched references are rejected.
+- Upgrade changes `rsr_sources` schema version to 1.2.1; it does **not** define a canonical disease ID or epidemiological denominator. File 06, File 26 and clinician-review boundaries remain distinct.

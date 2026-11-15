@@ -30,6 +30,8 @@ printf 'PASS %s JavaScript syntax checks\n' "$JS_COUNT" > "$DIST/javascript-synt
 printf 'Running domain/security tests...\n'
 php "$ROOT/tests/run.php" | tee "$DIST/domain-tests.log"
 DOMAIN_ASSERTIONS="$(grep -Eo 'PASS [0-9]+ domain/security assertions' "$DIST/domain-tests.log" | awk '{print $2}')"
+printf 'Running source-signal governance regression...\n'
+php "$ROOT/tests/signal-taxonomy-regression.php" | tee "$DIST/signal-taxonomy-regression.log"
 printf 'Running static requirement/regression tests...\n'
 php "$ROOT/tests/static-regression.php" | tee "$DIST/static-regression.log"
 STATIC_CHECKS="$(grep -Eo 'PASS [0-9]+ static requirement/regression checks' "$DIST/static-regression.log" | awk '{print $2}')"
