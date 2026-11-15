@@ -349,6 +349,19 @@ final class RSR_DB
         return $missing;
     }
 
+    /** @return array<int, string> Schema drift evidence, not an instruction to auto-patch live. */
+    public static function missing_required_columns(): array
+    {
+        global $wpdb;
+        if (in_array('sources', self::missing_tables(), true)) {
+            return ['sources.signal_type'];
+        }
+        $table = self::table('sources');
+        $wpdb->last_error = '';
+        $column = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$table} LIKE %s", 'signal_type'));
+        return $wpdb->last_error === '' && $column === 'signal_type' ? [] : ['sources.signal_type'];
+    }
+
     public static function seed_dimensions(): void
     {
         global $wpdb;

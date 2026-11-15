@@ -17,7 +17,7 @@ get_header();
         <article class="rsr-stat"><strong><?php echo esc_html((string)count((array)$view['sources'])); ?></strong><span><?php esc_html_e('Visible sources', RSR_TEXT_DOMAIN); ?></span></article>
         <article class="rsr-stat"><strong><?php echo esc_html((string)count((array)$view['reports'])); ?></strong><span><?php esc_html_e('Visible reports', RSR_TEXT_DOMAIN); ?></span></article>
         <article class="rsr-stat"><strong><?php echo esc_html((string)array_sum((array)($view['diagnostics']['rows'] ?? []))); ?></strong><span><?php esc_html_e('Governed rows', RSR_TEXT_DOMAIN); ?></span></article>
-        <article class="rsr-stat"><strong><?php echo empty($view['diagnostics']['missing_tables']) ? '✓' : '!'; ?></strong><span><?php esc_html_e('Schema health', RSR_TEXT_DOMAIN); ?></span></article>
+        <article class="rsr-stat"><strong><?php echo !empty($view['diagnostics']['schema_compatible']) ? '✓' : '!'; ?></strong><span><?php esc_html_e('Schema health', RSR_TEXT_DOMAIN); ?></span></article>
     </section>
 
     <?php if (!empty($view['can_manage_sources']) || !empty($view['can_run_ingestion'])) : ?>

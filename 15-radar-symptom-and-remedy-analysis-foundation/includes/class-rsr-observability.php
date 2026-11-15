@@ -102,6 +102,8 @@ final class RSR_Observability
     public static function diagnostics(): array
     {
         $missing = RSR_DB::missing_tables();
+        $missing_columns = RSR_DB::missing_required_columns();
+        $recorded_schema = (string)get_option('rsr_schema_version', '0');
         $fingerprint = null;
         try {
             $fingerprint = RSR_Crypto::key_fingerprint();
@@ -110,9 +112,11 @@ final class RSR_Observability
         }
         return [
             'plugin_version' => RSR_VERSION,
-            'schema_version' => (string)get_option('rsr_schema_version', '0'),
+            'schema_version' => $recorded_schema,
             'expected_schema_version' => RSR_SCHEMA_VERSION,
+            'schema_compatible' => $missing === [] && $missing_columns === [] && $recorded_schema === RSR_SCHEMA_VERSION,
             'missing_tables' => $missing,
+            'missing_required_columns' => $missing_columns,
             'cron' => [
                 'reconcile_trend_windows' => wp_next_scheduled('rsr_reconcile_trend_windows') ?: null,
                 'process_outbox' => wp_next_scheduled('rsr_process_outbox') ?: null,

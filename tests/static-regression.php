@@ -118,6 +118,8 @@ $assert(str_contains($domain, 'writable_source_licenses'), 'Strict writable lice
 $assert(str_contains($domain, 'normalize_source_signal_type'), 'Signal taxonomy validation is missing.');
 $assert(str_contains($db, "signal_type varchar(32) NOT NULL DEFAULT 'source_activity'"), 'Versioned source signal column is missing.');
 $assert(str_contains($db, 'SHOW COLUMNS FROM'), 'Signal column migration must be checked before schema version commit.');
+$assert(str_contains($db, 'missing_required_columns'), 'Live diagnostics must expose missing signal taxonomy columns.');
+$assert(str_contains($observability, "'schema_compatible' =>"), 'Schema status must reflect actual columns and the recorded version.');
 $assert(str_contains($trends, '$topic_group_key = $signal_type'), 'Unlike sources must not be grouped into one trend topic.');
 $assert(str_contains($trends, "'signal_type' => " . '$signal_type'), 'Public trend classifications must carry their source signal type.');
 $assert(str_contains($adminJs, 'form.elements.signal_type.value'), 'Signal taxonomy must be preserved by the UI.');
